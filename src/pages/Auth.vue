@@ -151,6 +151,7 @@ async function handleFacebook() {
       <nav class="auth-tabs" role="tablist">
         <button role="tab" :aria-selected="view === 'login'" :class="['auth-tab', { active: view === 'login' }]"
           @click="switchView('login')">
+          
           <p>Login</p>
         </button>
         <button role="tab" :aria-selected="view === 'register'" :class="['auth-tab', { active: view === 'register' }]"
@@ -185,7 +186,7 @@ async function handleFacebook() {
           <p v-else>Login</p>
         </button>
 
-        <!-- <div class="divider"><span>or continue with</span></div>
+        <div class="divider"><span>or continue with</span></div>
         <div class="social-row">
           <button type="button" class="btn social google" @click="handleGoogle">
             <img src="../assets/icons8-google-32.png" alt="">
@@ -195,7 +196,7 @@ async function handleFacebook() {
             <img src="../assets/icons8-facebook-32.png" alt="">
             <p>Facebook</p>
           </button>
-        </div> -->
+        </div>
       </form>
 
       <!-- REGISTER -->
