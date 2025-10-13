@@ -161,16 +161,16 @@ const closeCheckout = () => {
                             selected
                         </span>
                     </div>
-                    <div class="summary-subtotal">
+                    <!-- <div class="summary-subtotal">
                         <span>Items Subtotal: {{ formatToPHCurrency(cartStore.itemsSubtotal) }}</span>
-                        <span>Total Shipping: ₱{{ cartStore.selectedShippingTotal.toFixed(2) }}</span>
-                    </div>
+                        <span>Total Shipping: ₱{{ (50).toFixed(2) }}</span>
+                    </div> -->
                 </div>
 
                 <button @click="checkOut" class="btn-checkout" :disabled="cartStore.selectedItems.length === 0"
                     :class="{ disabled: cartStore.selectedItems.length === 0 }">
-                    <span>Check Out :</span>
-                    <span class="subtotal">{{ formatToPHCurrency(cartStore.total) }}</span>
+                    <span>Check Out</span>
+                    <!-- <span class="subtotal">{{ formatToPHCurrency(cartStore.total) }}</span> -->
                 </button>
             </div>
             <!-- <div class="mobile-nav">

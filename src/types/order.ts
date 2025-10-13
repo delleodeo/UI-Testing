@@ -38,4 +38,6 @@ export interface Order {
   shippingCarrier?: string;
   shippedAt?: string;
   shippingNotes?: string;
+  shippingOption?: string;
+  agreementDetails: string
 }

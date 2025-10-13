@@ -46,6 +46,7 @@ export const useOrderStore = defineStore('order', {
     async createOrder(orderData) {
       try {
         const response = await axios.post(`${API_BASE_URL}/order`, orderData, { headers })
+        console.log('Order created successfully:', response.data)
         return response.data
       } catch (error) {
         console.error('Failed to create order:', error.response?.data || error.message)

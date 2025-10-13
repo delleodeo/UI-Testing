@@ -12,6 +12,7 @@ import {
   TruckIcon,
   XCircleIcon,
   EllipsisHorizontalCircleIcon,
+  ChatBubbleLeftEllipsisIcon,
 } from "@heroicons/vue/24/outline";
 import { Order } from "../../../types/order";
 import { useOrdersStore, OrderStatus } from "../../../stores/vendor/vendorOrderStore";
@@ -19,14 +20,10 @@ import { useOrdersStore, OrderStatus } from "../../../stores/vendor/vendorOrderS
 
 const store = useOrdersStore();
 
-setTimeout(() => {
-  store.orders.forEach(item => [
-    console.table(item.items)
-  ])
-}, 100)
-
 const expanded = ref<Set<string>>(new Set());
 const showFilters = ref(false);
+const isAgreementModalVisible = ref(false);
+const currentAgreementDetails = ref("");
 
 
 onMounted(() => {
@@ -418,10 +415,33 @@ function onSearchInput(e: Event) {
   store.setSearch(target.value);
 }
 
+function showAgreementDetails(order: Order) {
+  currentAgreementDetails.value = order.agreementDetails || "No details provided.";
+  isAgreementModalVisible.value = true;
+}
+
+function closeAgreementModal() {
+  isAgreementModalVisible.value = false;
+}
 </script>
 
 <template>
   <div class="order-cards-page">
+
+    <!-- Agreement Details Modal -->
+    <transition name="fade">
+      <div v-if="isAgreementModalVisible" class="agreement-modal-overlay" @click="closeAgreementModal">
+        <div class="agreement-modal-container" @click.stop>
+          <div class="agreement-modal-header">
+            <h3>Agreement Details</h3>
+            <button @click="closeAgreementModal" class="modal-close-btn">&times;</button>
+          </div>
+          <div class="agreement-modal-body">
+            <p>{{ currentAgreementDetails }}</p>
+          </div>
+        </div>
+      </div>
+    </transition>
 
     <div class="status-tabs" role="tablist" aria-label="Order status" @keydown="onTabKey">
       <button v-for="key in statusKeys" :key="key" role="tab" type="button" :aria-selected="store.activeStatus === key"
@@ -527,6 +547,15 @@ function onSearchInput(e: Event) {
           <div class="info-line">
             <span class="lbl">Shipping Fee:</span>
             <span class="val strong">{{ currency(o.shippingFee) }}</span>
+          </div>
+            <div class="info-line">
+            <span class="lbl">Shipping Mode:</span>
+            <span class="val strong">
+              {{o.shippingOption}}
+              <button v-if="o.shippingOption === 'agreement'" class="btn-icon" @click="showAgreementDetails(o)">
+                <ChatBubbleLeftEllipsisIcon class="icon mini" />
+              </button>
+            </span>
           </div>
           <div class="info-line">
             <span class="lbl">Subtotal:</span>
@@ -925,6 +954,10 @@ function onSearchInput(e: Event) {
 .info-line .val {
   flex: 1;
   text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .info-line .val.strong {
@@ -1220,6 +1253,97 @@ function onSearchInput(e: Event) {
 
 .pager-label {
   font-weight: 600;
+}
+
+/* Agreement Modal Styles */
+.agreement-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.agreement-modal-container {
+  width: 100%;
+  max-width: 500px;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+}
+
+.agreement-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.agreement-modal-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.modal-close-btn:hover {
+  color: #fff;
+}
+
+.agreement-modal-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.agreement-modal-body p {
+  margin: 0;
+  white-space: pre-wrap; /* Preserve line breaks from textarea */
+}
+
+.btn-icon {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.btn-icon .icon.mini {
+  width: 14px;
+  height: 14px;
 }
 
 @media (max-width: 620px) {

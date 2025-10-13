@@ -46,18 +46,9 @@ export const useCartStore = defineStore("cart", {
       return total;
     },
 
-    selectedShippingTotal(state) {
-      let total = 0;
-      state.cartData.shops.forEach((shop) => {
-        const shopHasSelectedItem = shop.items?.some((item) =>
-          state.selectedItems.includes(item.itemId)
-        );
-        if (shopHasSelectedItem) {
-          total += shop.shippingFee || 0;
-        }
-      });
-      return total;
-    },
+    // selectedShippingTotal(shippingFee) {
+    //   return shippingFee;
+    // },
 
     total() {
       return this.itemsSubtotal + this.selectedShippingTotal;
@@ -124,21 +115,18 @@ export const useCartStore = defineStore("cart", {
             );
 
             const shopId = vendorId;
-            const shippingFee = cart?.shippingFee || 50;
 
 
             if (!shopsMap.has(shopId)) {
               shopsMap.set(shopId, {
                 shopId,
                 shopName: vendor?.storeName || "Shop",
-                shippingFee,
                 items: [],
                 date: new Date()
               });
             }
 
             const item = {
-              shippingFee,
               itemId: `${product._id}-${selectedOption?._id || 'default'}`,
               vendorId: product.vendorId,
               productId: product?._id,
