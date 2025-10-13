@@ -1,6 +1,7 @@
 // src/stores/auth.js
 import { defineStore } from "pinia";
 import axios from "axios";
+import { getAuthHeaders } from "../types/shared";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -8,6 +9,7 @@ export const useAuthStore = defineStore("auth", {
   state: () => ({
     token: null,
     isAuthenticated: false,
+    user: null,
     userId: '',
     userRole: '',
     authChecked: false,
@@ -97,19 +99,83 @@ export const useAuthStore = defineStore("auth", {
     },
 
     async logout() {
+      console.log('🔄 Auth Store: Starting logout process...');
+      
+      // Try the protected logout endpoint first
       try {
+        console.log('📡 Attempting protected logout with token...');
+        
+        // Get proper auth headers
+        const authHeaders = this.token ? getAuthHeaders() : {};
+        
         await axios.post(
           `${API_BASE_URL}/user/logout`,
           {},
-          { withCredentials: true }
+          { 
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+              ...authHeaders
+            }
+          }
         );
+        console.log('✅ Protected logout successful');
+        
       } catch (err) {
-        console.warn("logout request failed (continuing):", err);
+        console.warn("❌ Protected logout failed, trying cookie logout:", err.response?.status, err.response?.data);
+        
+        // Try the cookie-based logout as fallback
+        try {
+          console.log('🍪 Attempting cookie-based logout...');
+          await axios.post(
+            `${API_BASE_URL}/user/logout-cookie`,
+            {},
+            { withCredentials: true }
+          );
+          console.log('✅ Cookie logout successful');
+          
+        } catch (cookieErr) {
+          console.warn("❌ Cookie logout also failed (continuing anyway):", cookieErr.response?.status, cookieErr.response?.data);
+        }
       }
 
+      // Clear all authentication-related state
+      console.log('🧹 Clearing auth state...');
       this.token = null;
       this.isAuthenticated = false;
+      this.userId = '';
+      this.userRole = '';
+      this.user = null;
       this.authChecked = true;
+      this.loading = false;
+      this.error = null;
+      this._sessionPromise = null;
+      this.loginError = null;
+      this.registerError = null;
+      this.verifyError = null;
+      
+      console.log('✨ Auth store logout completed');
+    },
+
+    // Method to verify logout was successful by checking session
+    async verifyLogout() {
+      try {
+        console.log('🔍 Verifying logout by checking session...');
+        const response = await axios.get(`${API_BASE_URL}/user/session`, { 
+          withCredentials: true 
+        });
+        
+        if (response.data.auth) {
+          console.warn('⚠️ Session still active after logout:', response.data);
+          return false;
+        } else {
+          console.log('✅ Session successfully destroyed');
+          return true;
+        }
+      } catch (error) {
+        console.log('✅ Session check failed (expected after logout):', error.response?.status);
+        return true; // 401/403 errors are expected after successful logout
+      }
     },
 
     // send otp

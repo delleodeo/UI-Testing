@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { BuildingStorefrontIcon, ChatBubbleLeftEllipsisIcon } from "@heroicons/vue/24/outline"
+import { useRouter } from 'vue-router'
+import { BuildingStorefrontIcon, ChatBubbleLeftEllipsisIcon, ArrowLeftIcon } from "@heroicons/vue/24/outline"
 import { useOrderStore } from '../stores/OrderStores'
 import type { Order, OrderItem, OrderStatus, PaymentMethod } from '../types/order'
 import { handleImageError } from '../utils/fallbackImage'
 import CustomerChatModal from '../components/CustomerChatModal.vue'
+import ConfirmationModal from '../components/ConfirmationModal.vue'
+
+const router = useRouter()
 
 const orderStore = useOrderStore()
 const orders = computed<Order[]>(() => orderStore.orders)
@@ -13,6 +17,11 @@ const orders = computed<Order[]>(() => orderStore.orders)
 const showChatModal = ref(false)
 const selectedOrderId = ref('')
 const selectedVendorName = ref('')
+
+// Cancel confirmation modal state
+const showCancelModal = ref(false)
+const orderToCancel = ref('')
+const isCancelling = ref(false)
 
 onMounted(async () => {
   await orderStore.fetchOrders()
@@ -49,13 +58,57 @@ const formatDeliveryTime = (dateStr: string | Date) =>
   }) + ' Delivered'
 
 const formatCurrency = (amount: number) =>
-  amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  amount.toFixed(2)
+
+const getOrderById = (orderId: string) =>
+  orders.value.find(order => order._id === orderId || order.orderId === orderId)
+
+// Computed property for selected order in cancel modal
+const selectedOrderForCancel = computed(() => 
+  orderToCancel.value ? getOrderById(orderToCancel.value) : null
+)
 
 const formatPaymentMethod = (method: PaymentMethod) => ({
   wallet: 'Digital Wallet',
   cod: 'Cash on Delivery',
   gcash: 'GCash'
 })[method] || method
+
+const formatShippingMethod = (shippingOption: string) => {
+  const shippingMethods = {
+    'J&T': 'J&T Express',
+    'j&t': 'J&T Express',
+    'jnt': 'J&T Express',
+    'pickup': 'Store Pickup',
+    'Pick Up': 'Store Pickup',
+    'agreement': 'Customer Agreement',
+    'Agreement': 'Customer Agreement',
+    'delivery': 'Standard Delivery',
+    'standard': 'Standard Delivery',
+    'express': 'Express Delivery',
+    'same-day': 'Same Day Delivery'
+  };
+  
+  return shippingMethods[shippingOption] || shippingOption || 'Standard Delivery';
+}
+
+const getShippingIcon = (shippingOption: string) => {
+  const icons = {
+    'J&T': '🚚',
+    'j&t': '🚚', 
+    'jnt': '🚚',
+    'pickup': '🏪',
+    'Pick Up': '🏪',
+    'agreement': '🤝',
+    'Agreement': '🤝',
+    'delivery': '📦',
+    'standard': '📦',
+    'express': '⚡',
+    'same-day': '🚀'
+  };
+  
+  return icons[shippingOption] || '📦';
+}
 
 const getStatusClass = (status: OrderStatus) => ({
   pending: 'status-pending',
@@ -97,9 +150,80 @@ const hasAgreementShipping = (order: Order) => {
 const requestRefund = (orderId: string) => console.log('Request refund:', orderId)
 const writeReview = (orderId: string) => console.log('Write review:', orderId)
 const trackOrder = (orderId: string) => console.log('Track order:', orderId)
-const cancelOrder = (orderId: string) => console.log('Cancel order:', orderId)
+
+// Show cancel confirmation modal
+const showCancelConfirmation = (orderId: string) => {
+  if (!orderId) {
+    console.error('❌ No order ID provided');
+    alert('Error: Order ID is missing. Please refresh the page and try again.');
+    return;
+  }
+  
+  orderToCancel.value = orderId;
+  showCancelModal.value = true;
+}
+
+// Handle cancel confirmation
+const handleCancelConfirm = async () => {
+  try {
+    isCancelling.value = true;
+    console.log('🔄 Cancelling order:', orderToCancel.value);
+    
+    // Call the order store to cancel the order
+    await orderStore.cancelOrder(orderToCancel.value);
+    
+    // Refresh orders to show updated status
+    await orderStore.fetchOrders();
+    
+    console.log('✅ Order cancelled successfully');
+    
+    // Close modal and reset state
+    showCancelModal.value = false;
+    orderToCancel.value = '';
+    
+    // Show success message (you could use a toast notification here instead)
+    alert('Order has been cancelled successfully.');
+    
+  } catch (error) {
+    console.error('❌ Failed to cancel order:', error);
+    alert('Failed to cancel order. Please try again or contact support.');
+  } finally {
+    isCancelling.value = false;
+  }
+}
+
+// Handle cancel modal close
+const handleCancelClose = () => {
+  if (!isCancelling.value) {
+    showCancelModal.value = false;
+    orderToCancel.value = '';
+  }
+}
+
 const rateOrder = (orderId: string, rating: number) =>
   console.log(`Rated order ${orderId} with ${rating} stars`)
+
+// Back navigation
+const goBack = () => {
+  // Check if there's a previous page in history
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    // Fallback to home page if no history
+    router.push('/products')
+  }
+}
+
+// Header actions
+const handleFilter = () => {
+  console.log('Open filter options')
+  // TODO: Implement filter functionality
+}
+
+const handleSearch = () => {
+  console.log('Open search')
+  // TODO: Implement search functionality
+}
 </script>
 
 <template>
@@ -112,7 +236,77 @@ const rateOrder = (orderId: string, rating: number) =>
       @close="closeChat"
     />
 
-    <!-- Top Tab Navigation -->
+    <!-- Cancel Order Confirmation Modal -->
+    <ConfirmationModal
+      :is-visible="showCancelModal"
+      title="Cancel Order"
+      :message="`Are you sure you want to cancel order ${orderToCancel}? This action cannot be undone and may affect your order history.`"
+      confirm-text="Yes, Cancel Order"
+      cancel-text="Keep Order"
+      loading-text="Cancelling..."
+      :is-loading="isCancelling"
+      @confirm="handleCancelConfirm"
+      @cancel="handleCancelClose"
+    >
+      <template #icon>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 18L18 6M6 6L18 18" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </template>
+      <template #content>
+        <div class="cancel-order-details">
+          <div v-if="selectedOrderForCancel" class="order-summary">
+            <h4 class="summary-title">Order Summary</h4>
+            <div class="summary-info">
+              <span class="info-label">Total Amount:</span>
+              <span class="info-value">₱{{ formatCurrency((selectedOrderForCancel.subTotal || 0) + (selectedOrderForCancel.shippingFee || 0)) }}</span>
+            </div>
+            <div class="summary-info">
+              <span class="info-label">Items:</span>
+              <span class="info-value">{{ selectedOrderForCancel.items?.length || 0 }} item(s)</span>
+            </div>
+            <div class="summary-info">
+              <span class="info-label">Status:</span>
+              <span class="info-value">{{ capitalize(selectedOrderForCancel.status || '') }}</span>
+            </div>
+          </div>
+          
+          <div class="warning-section">
+            <p class="warning-text">
+              <strong>⚠️ What happens when you cancel:</strong>
+            </p>
+            <ul class="warning-list">
+              <li>Your order will be immediately cancelled</li>
+              <li>Any payment will be refunded within 3-5 business days</li>
+              <li>You cannot reactivate this order once cancelled</li>
+              <li>The vendor will be notified of the cancellation</li>
+            </ul>
+          </div>
+        </div>
+      </template>
+    </ConfirmationModal>
+
+    <!-- Header Layout Similar to Shopping Cart -->
+    <div class="page-header">
+      <div class="header-content">
+        <div class="header-left">
+          <button @click="goBack" class="back-button">
+            <ArrowLeftIcon class="back-icon" />
+          </button>
+          <h1 class="page-title">My Orders</h1>
+        </div>
+        <!-- <div class="header-right">
+          <button @click="handleFilter" class="action-button secondary">
+            <span>Filter</span>
+          </button>
+          <button @click="handleSearch" class="action-button primary">
+            <span>Search Orders</span>
+          </button>
+        </div> -->
+      </div>
+    </div>
+
+    <!-- Enhanced Tab Navigation -->
     <div class="tab-nav">
       <div class="tab-nav-inner">
         <button v-for="status in statuses" :key="status" :class="{ active: currentStatus === status }"
@@ -182,12 +376,23 @@ const rateOrder = (orderId: string, rating: number) =>
             <div class="delivery-arrow">›</div>
           </div>
 
-          <!-- Agreement Shipping Info -->
-          <div v-if="hasAgreementShipping(order)" class="delivery-info-section">
+          <!-- Shipping Method Info (All Orders) -->
+          <div class="delivery-info-section">
             <div class="delivery-method">
-              <span class="delivery-label">Delivery Method:</span>
-              <span class="delivery-value">Customer Agreement</span>
-              <button @click="openChat(order)" class="chat-link">
+              <span class="delivery-icon">{{ getShippingIcon(order.shippingOption) }}</span>
+              <div class="delivery-details">
+                <span class="delivery-label">Delivery Method:</span>
+                <span class="delivery-value">{{ formatShippingMethod(order.shippingOption) }}</span>
+                <span v-if="order.shippingFee > 0" class="delivery-fee">
+                  (₱{{ formatCurrency(order.shippingFee) }})
+                </span>
+              </div>
+              <!-- Chat button only for agreement orders -->
+              <button 
+                v-if="hasAgreementShipping(order)" 
+                @click="openChat(order)" 
+                class="chat-link"
+              >
                 💬 Chat about delivery
               </button>
             </div>
@@ -242,7 +447,7 @@ const rateOrder = (orderId: string, rating: number) =>
           </div>
 
           <div class="action-buttons" v-else-if="order.status === 'pending'">
-            <button class="btn-secondary" @click="cancelOrder(order.orderId)">
+            <button class="btn-secondary" @click="showCancelConfirmation(order._id || order.orderId)">
               Cancel order
             </button>
             <!-- <button class="btn-primary" @click="payNow(order.orderId)">
@@ -293,13 +498,116 @@ const rateOrder = (orderId: string, rating: number) =>
 .orders-wrapper {
   display: flex;
   flex-direction: column;
-
   background: var(--backgorund-color);
   color: var(--gray-900);
   line-height: 1.5;
   height: 100dvh;
   overflow: auto;
   padding-bottom: 4rem;
+}
+
+/* Page Header - Shopping Cart Style */
+.page-header {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: #059669;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.back-button:hover {
+  background: #f0fdf4;
+  color: #047857;
+}
+
+.back-button:active {
+  transform: scale(0.95);
+}
+
+.back-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #059669;
+  margin: 0;
+  letter-spacing: -0.025em;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid;
+}
+
+.action-button.secondary {
+  background: white;
+  border-color: #d1d5db;
+  color: #6b7280;
+}
+
+.action-button.secondary:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #4b5563;
+}
+
+.action-button.primary {
+  background: #f97316;
+  border-color: #f97316;
+  color: white;
+}
+
+.action-button.primary:hover {
+  background: #ea580c;
+  border-color: #ea580c;
 }
 
 /* Tab Navigation */
@@ -798,6 +1106,51 @@ const rateOrder = (orderId: string, rating: number) =>
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .page-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .header-content {
+    gap: 1rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .back-button {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .back-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .header-right {
+    gap: 0.5rem;
+  }
+
+  .action-button {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .action-button span {
+    display: none;
+  }
+
+  .action-button.secondary::after {
+    content: "⚙";
+    font-size: 1rem;
+  }
+
+  .action-button.primary::after {
+    content: "🔍";
+    font-size: 1rem;
+  }
+
   .orders-container {
     max-width: 100%;
     padding: var(--spacing-1);
@@ -906,6 +1259,19 @@ const rateOrder = (orderId: string, rating: number) =>
   font-size: 14px;
 }
 
+.delivery-icon {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.delivery-details {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  flex-grow: 1;
+}
+
 .delivery-label {
   color: var(--gray-600);
   font-weight: 500;
@@ -914,6 +1280,12 @@ const rateOrder = (orderId: string, rating: number) =>
 .delivery-value {
   color: var(--primary-color);
   font-weight: 600;
+}
+
+.delivery-fee {
+  color: var(--gray-500);
+  font-weight: 400;
+  font-size: 13px;
 }
 
 .chat-link {
@@ -932,5 +1304,77 @@ const rateOrder = (orderId: string, rating: number) =>
 .chat-link:hover {
   background: var(--primary-600);
   transform: translateY(-1px);
+}
+
+/* Cancel Order Modal Styles */
+.cancel-order-details {
+  margin-top: 0.75rem;
+}
+
+.order-summary {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.summary-title {
+  color: #1E293B;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+  font-size: 14px;
+}
+
+.summary-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 13px;
+}
+
+.summary-info:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  color: #64748B;
+  font-weight: 500;
+}
+
+.info-value {
+  color: #1E293B;
+  font-weight: 600;
+}
+
+.warning-section {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.warning-text {
+  color: #B91C1C;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  font-size: 14px;
+}
+
+.warning-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #7F1D1D;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.warning-list li {
+  margin-bottom: 0.25rem;
+}
+
+.warning-list li:last-child {
+  margin-bottom: 0;
 }
 </style>

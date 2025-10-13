@@ -14,7 +14,20 @@ import {
   EllipsisHorizontalCircleIcon,
   ChatBubbleLeftEllipsisIcon,
   PaperAirplaneIcon,
+  ClipboardDocumentListIcon,
+  ClockIcon,
+  CreditCardIcon,
+  ArchiveBoxIcon,
+  HandThumbUpIcon,
+  ExclamationTriangleIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@heroicons/vue/24/outline";
+import { 
+  CheckCircleIcon as CheckCircleSolidIcon,
+  TruckIcon as TruckSolidIcon,
+  XCircleIcon as XCircleSolidIcon,
+} from "@heroicons/vue/24/solid";
 import { Order, AgreementMessage } from "../../../types/order";
 import { useOrdersStore, OrderStatus } from "../../../stores/vendor/vendorOrderStore";
 import { io, Socket } from "socket.io-client";
@@ -443,6 +456,32 @@ function actionStatuses(o: Order) {
 const statusKeys = ["all", "pending", "paid", "shipped", "delivered", "cancelled"] as const;
 type StatusKey = typeof statusKeys[number];
 
+// Icon mapping for status navigation
+function getStatusIcon(status: StatusKey) {
+  const iconMap = {
+    all: ClipboardDocumentListIcon,
+    pending: ClockIcon,
+    paid: CreditCardIcon,
+    shipped: TruckIcon,
+    delivered: CheckCircleIcon,
+    cancelled: XCircleIcon
+  };
+  return iconMap[status];
+}
+
+// Get solid version of status icons for active states
+function getStatusIconSolid(status: StatusKey) {
+  const iconMap = {
+    all: ClipboardDocumentListIcon,
+    pending: ClockIcon,
+    paid: CreditCardIcon,
+    shipped: TruckSolidIcon,
+    delivered: CheckCircleSolidIcon,
+    cancelled: XCircleSolidIcon
+  };
+  return iconMap[status];
+}
+
 function resetExpanded() {
   expanded.value = new Set();
 }
@@ -456,18 +495,42 @@ function onStatusTabClick(key: StatusKey) {
 function onTabKey(e: KeyboardEvent) {
   const idx = statusKeys.indexOf(store.activeStatus as StatusKey);
   if (idx === -1) return;
-  if (["ArrowRight", "ArrowLeft", "Home", "End"].includes(e.key)) {
+  
+  // Handle keyboard navigation
+  if (["ArrowRight", "ArrowLeft", "Home", "End", "Enter", " "].includes(e.key)) {
     e.preventDefault();
+    
+    // Handle activation keys
+    if (e.key === "Enter" || e.key === " ") {
+      return; // Let the click handler handle activation
+    }
+    
     let newIdx = idx;
     if (e.key === "ArrowRight") newIdx = (idx + 1) % statusKeys.length;
     if (e.key === "ArrowLeft") newIdx = (idx - 1 + statusKeys.length) % statusKeys.length;
     if (e.key === "Home") newIdx = 0;
     if (e.key === "End") newIdx = statusKeys.length - 1;
+    
     onStatusTabClick(statusKeys[newIdx]);
     nextTick(() => {
       const el = document.querySelectorAll<HTMLButtonElement>(".status-tabs button")[newIdx];
       el?.focus();
+      // Announce to screen readers
+      el?.setAttribute('aria-live', 'polite');
+      setTimeout(() => el?.removeAttribute('aria-live'), 100);
     });
+  }
+}
+
+// Enhanced pagination navigation
+function onPaginationKey(e: KeyboardEvent, action: 'prev' | 'next') {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    if (action === 'prev' && store.page > 1) {
+      store.prevPage();
+    } else if (action === 'next' && store.page < store.pageCount) {
+      store.nextPage();
+    }
   }
 }
 
@@ -608,6 +671,8 @@ function handleKeyDown(event: KeyboardEvent) {
 
 <template>
   <div class="order-cards-page">
+    <!-- Skip Navigation -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
 
     <!-- Agreement Chat Modal -->
     <transition name="fade">
@@ -640,9 +705,15 @@ function handleKeyDown(event: KeyboardEvent) {
             </div>
             
             <!-- Empty state -->
-            <div v-if="!activeChatOrder.agreementDetails && (!activeChatOrder.agreementMessages || activeChatOrder.agreementMessages.length === 0)" class="empty-chat">
-              <ChatBubbleLeftEllipsisIcon class="empty-icon" />
-              <p>Start the conversation with your customer</p>
+            <div v-if="!activeChatOrder.agreementDetails && (!activeChatOrder.agreementMessages || activeChatOrder.agreementMessages.length === 0)" class="empty-chat enhanced-empty-chat">
+              <div class="empty-icon-wrapper">
+                <ChatBubbleLeftEllipsisIcon class="empty-icon" />
+                <div class="icon-glow"></div>
+              </div>
+              <div class="empty-content">
+                <h3>No messages yet</h3>
+                <p>Start the conversation with your customer to discuss shipping details</p>
+              </div>
             </div>
           </div>
           
@@ -656,26 +727,53 @@ function handleKeyDown(event: KeyboardEvent) {
             ></textarea>
             <button 
               @click="sendAgreementMessage" 
-              class="btn-send" 
+              class="btn-send enhanced-send-btn" 
               :disabled="isSendingMessage || !newMessage.trim() || !isConnected"
+              :class="{ 'sending': isSendingMessage }"
+              title="Send message"
             >
-              <PaperAirplaneIcon class="icon mini" />
+              <div v-if="isSendingMessage" class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <PaperAirplaneIcon v-else class="icon mini send-icon" />
             </button>
           </div>
         </div>
       </div>
     </transition>
 
-    <div class="status-tabs" role="tablist" aria-label="Order status" @keydown="onTabKey">
-      <button v-for="key in statusKeys" :key="key" role="tab" type="button" :aria-selected="store.activeStatus === key"
-        :tabindex="store.activeStatus === key ? 0 : -1" :class="['status-chip', { active: store.activeStatus === key }]"
-        @click="onStatusTabClick(key as any)">
-        <span class="lbl">{{ key === 'all' ? 'All' : safeStatusLabel(key as any) }}</span>
-        <span class="count">{{ store.statusCounts[key as any] ?? 0 }}</span>
+    <div class="status-tabs enhanced-nav" role="tablist" aria-label="Order status filter" @keydown="onTabKey">
+      <button 
+        v-for="(key, index) in statusKeys" 
+        :key="key" 
+        role="tab" 
+        type="button" 
+        :aria-selected="store.activeStatus === key"
+        :aria-controls="`orders-panel-${key}`"
+        :aria-describedby="`status-desc-${key}`"
+        :tabindex="store.activeStatus === key ? 0 : -1" 
+        :class="['status-chip', { active: store.activeStatus === key }]"
+        :data-status="key"
+        @click="onStatusTabClick(key as any)"
+        @focus="($event.target as HTMLElement)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })"
+      >
+        <component 
+          :is="store.activeStatus === key ? getStatusIconSolid(key) : getStatusIcon(key)" 
+          class="status-icon" 
+        />
+        <span class="lbl">{{ key === 'all' ? 'All Orders' : safeStatusLabel(key as any) }}</span>
+        <span class="count" :aria-label="`${store.statusCounts[key as any] ?? 0} orders`">
+          {{ store.statusCounts[key as any] ?? 0 }}
+        </span>
+        <span :id="`status-desc-${key}`" class="sr-only">
+          Filter orders by {{ key === 'all' ? 'all statuses' : key + ' status' }}
+        </span>
       </button>
     </div>
 
-
+    <main id="main-content">
     <div class="controls">
       <div class="search-box">
         <MagnifyingGlassIcon class="icon" />
@@ -775,8 +873,9 @@ function handleKeyDown(event: KeyboardEvent) {
             <span class="lbl">Shipping Mode:</span>
             <span class="val strong">
               {{o.shippingOption}}
-              <button v-if="o.shippingOption === 'agreement'" class="btn-icon" @click="openAgreementChat(o)">
+              <button v-if="o.shippingOption === 'agreement'" class="btn-icon chat-btn" @click="openAgreementChat(o)" title="Open chat">
                 <ChatBubbleLeftEllipsisIcon class="icon mini" />
+                <span class="btn-tooltip">Chat</span>
               </button>
             </span>
           </div>
@@ -871,16 +970,64 @@ function handleKeyDown(event: KeyboardEvent) {
     </div>
 
     <!-- Pagination -->
-    <div class="pagination" v-if="store.pageCount > 1">
-      <button class="btn tiny outline" type="button" :disabled="store.page === 1" @click="store.prevPage">Prev</button>
-      <span class="pager-label">Page {{ store.page }} of {{ store.pageCount }}</span>
-      <button class="btn tiny outline" type="button" :disabled="store.page === store.pageCount"
-        @click="store.nextPage">Next</button>
-    </div>
+    <nav class="pagination enhanced-pagination" v-if="store.pageCount > 1" role="navigation" aria-label="Orders pagination">
+      <button 
+        class="btn tiny outline pagination-btn" 
+        type="button" 
+        :disabled="store.page === 1" 
+        @click="store.prevPage"
+        @keydown="onPaginationKey($event, 'prev')"
+        :aria-label="`Go to previous page, currently on page ${store.page}`"
+      >
+        <ChevronLeftIcon class="icon mini" data-direction="prev" />
+        Prev
+      </button>
+      
+      <div class="pagination-info" role="status" aria-live="polite">
+        <ClipboardDocumentListIcon class="page-icon" />
+        <span class="pager-label">Page {{ store.page }} of {{ store.pageCount }}</span>
+        <span class="sr-only">Currently viewing page {{ store.page }} of {{ store.pageCount }} total pages</span>
+      </div>
+      
+      <button 
+        class="btn tiny outline pagination-btn" 
+        type="button" 
+        :disabled="store.page === store.pageCount"
+        @click="store.nextPage"
+        @keydown="onPaginationKey($event, 'next')"
+        :aria-label="`Go to next page, currently on page ${store.page}`"
+      >
+        Next
+        <ChevronRightIcon class="icon mini" data-direction="next" />
+      </button>
+    </nav>
+    </main>
   </div>
 </template>
 
 <style scoped>
+/* Skip Link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #1f2937;
+  color: white;
+  padding: 8px 12px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 1000;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.skip-link:focus {
+  top: 6px;
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
 /* Layout & background */
 .order-cards-page {
   min-height: 100dvh;
@@ -889,6 +1036,7 @@ function handleKeyDown(event: KeyboardEvent) {
   flex-direction: column;
   gap: 1.2rem;
   padding: clamp(1rem, 2vw, 2rem);
+  position: relative;
   background: rgb(21, 30, 46);
   background:
     radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.04), transparent 60%),
@@ -1624,6 +1772,7 @@ function handleKeyDown(event: KeyboardEvent) {
   width: 48px;
   height: 48px;
   opacity: 0.5;
+  transition: all 0.3s ease;
 }
 
 .chat-input-area {
@@ -1692,6 +1841,483 @@ function handleKeyDown(event: KeyboardEvent) {
   cursor: not-allowed;
   box-shadow: none;
   transform: none;
+}
+
+/* Enhanced Message Icon Styles */
+.btn-icon.chat-btn {
+  position: relative;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 8px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+  overflow: hidden;
+}
+
+.btn-icon.chat-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-icon.chat-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+}
+
+.btn-icon.chat-btn .icon {
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.btn-icon.chat-btn:hover .icon {
+  transform: scale(1.1);
+}
+
+/* Tooltip for chat button */
+.btn-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.btn-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #1f2937;
+}
+
+.btn-icon.chat-btn:hover .btn-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Enhanced Send Button */
+.enhanced-send-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.enhanced-send-btn:not(:disabled):hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+}
+
+.enhanced-send-btn .send-icon {
+  transition: all 0.3s ease;
+}
+
+.enhanced-send-btn:hover .send-icon {
+  transform: rotate(15deg) scale(1.1);
+}
+
+.enhanced-send-btn.sending {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+  animation: pulse 2s infinite;
+}
+
+/* Loading dots animation */
+.loading-dots {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-dots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: white;
+  animation: loading-bounce 1.4s infinite ease-in-out both;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+.loading-dots span:nth-child(3) { animation-delay: 0s; }
+
+@keyframes loading-bounce {
+  0%, 80%, 100% { 
+    transform: scale(0.6);
+    opacity: 0.5;
+  } 
+  40% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Enhanced Empty Chat State */
+.enhanced-empty-chat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.empty-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.enhanced-empty-chat .empty-icon {
+  width: 64px;
+  height: 64px;
+  color: #10b981;
+  opacity: 0.8;
+  z-index: 2;
+  position: relative;
+  animation: float 3s ease-in-out infinite;
+}
+
+.icon-glow {
+  position: absolute;
+  inset: -8px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: glow-pulse 2s ease-in-out infinite alternate;
+}
+
+.empty-content h3 {
+  color: #e2e8f0;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.empty-content p {
+  color: #94a3b8;
+  font-size: 14px;
+  margin: 0;
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes glow-pulse {
+  0% { opacity: 0.5; transform: scale(1); }
+  100% { opacity: 0.8; transform: scale(1.1); }
+}
+
+/* Enhanced general icon styles */
+.icon.mini {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.5;
+}
+
+/* Enhanced Navigation Styles */
+.enhanced-nav {
+  position: relative;
+  scroll-behavior: smooth;
+}
+
+.enhanced-nav .status-chip {
+  position: relative;
+  transition: all 0.3s ease;
+  scroll-margin: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Status Icons */
+.status-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.status-chip:hover .status-icon {
+  transform: scale(1.1);
+}
+
+.status-chip.active .status-icon {
+  transform: scale(1.05);
+}
+
+/* Status-specific icon colors */
+.status-chip:not(.active) .status-icon {
+  opacity: 0.7;
+}
+
+/* Color coding for different status icons */
+.status-chip[data-status="all"] .status-icon {
+  color: #64748b;
+}
+
+.status-chip[data-status="pending"] .status-icon {
+  color: #f59e0b;
+}
+
+.status-chip[data-status="paid"] .status-icon {
+  color: #10b981;
+}
+
+.status-chip[data-status="shipped"] .status-icon {
+  color: #3b82f6;
+}
+
+.status-chip[data-status="delivered"] .status-icon {
+  color: #22c55e;
+}
+
+.status-chip[data-status="cancelled"] .status-icon {
+  color: #ef4444;
+}
+
+.status-chip.active .status-icon {
+  color: rgb(21, 30, 46);
+  opacity: 1;
+  animation: iconPulse 0.3s ease-out;
+}
+
+@keyframes iconPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1.05); }
+}
+
+.enhanced-nav .status-chip:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.enhanced-nav .status-chip:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.enhanced-nav .status-chip.active:focus {
+  outline-color: #1d4ed8;
+}
+
+/* Screen reader only class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Enhanced Pagination */
+.enhanced-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  letter-spacing: 0.025em;
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 80px;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.pagination-btn:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.pagination-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.pagination-info {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.5rem;
+  min-width: 120px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.page-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+/* Pagination Icon Animations */
+.pagination-btn:hover .icon {
+  transform: translateX(2px);
+}
+
+.pagination-btn:hover .icon[data-direction="prev"] {
+  transform: translateX(-2px);
+}
+
+/* Mobile Navigation Enhancements */
+@media (max-width: 768px) {
+  .enhanced-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  }
+  
+  .enhanced-nav::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  .enhanced-nav::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+  }
+  
+  .enhanced-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+  }
+  
+  .status-tabs {
+    flex-wrap: nowrap;
+    min-width: max-content;
+    padding: 0.5rem;
+  }
+  
+  .status-chip {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  
+  .enhanced-pagination {
+    gap: 0.75rem;
+    font-size: 0.7rem;
+  }
+  
+  .pagination-btn {
+    min-width: 70px;
+    padding: 0.4rem 0.6rem;
+  }
+  
+  .pagination-info {
+    padding: 0.4rem 0.8rem;
+    min-width: 100px;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .page-icon {
+    display: none;
+  }
+  
+  .status-chip {
+    gap: 0.375rem;
+  }
+  
+  .status-icon {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .btn-tooltip {
+    display: none;
+  }
+  
+  .enhanced-empty-chat {
+    padding: 24px 16px;
+  }
+  
+  .enhanced-empty-chat .empty-icon {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .empty-content h3 {
+    font-size: 16px;
+  }
+  
+  .empty-content p {
+    font-size: 13px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .enhanced-nav .status-chip:focus {
+    outline: 3px solid;
+    outline-offset: 2px;
+  }
+  
+  .pagination-btn:focus {
+    outline: 3px solid;
+    outline-offset: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .enhanced-nav {
+    scroll-behavior: auto;
+  }
+  
+  .enhanced-nav .status-chip,
+  .pagination-btn,
+  .loading-dots span {
+    transition: none;
+    animation: none;
+  }
 }
 
 /* Rest of existing styles remain the same */

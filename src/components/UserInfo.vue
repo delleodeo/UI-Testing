@@ -19,40 +19,58 @@ const closeAfterSave = () => {
 </script>
 
 <template>
-  <div class="user-card">
-    <button class="edit-info" @click="handleInformationButton">
-      <PencilSquareIcon v-if="isEdit" class="edit-icon"></PencilSquareIcon>
-      <XMarkIcon v-else class="close-icon"></XMarkIcon>
-    </button>
-    <h3 class="card-title">{{ !isEdit ? "Edit Personal Information" : "Personal Information" }}</h3>
+  <div class="user-info-card">
+    <div class="card-header">
+      <h3 class="card-title">{{ !isEdit ? "Edit Personal Information" : "Personal Information" }}</h3>
+      <button class="edit-btn" @click="handleInformationButton">
+        <PencilSquareIcon v-if="isEdit" class="edit-icon" />
+        <XMarkIcon v-else class="close-icon" />
+      </button>
+    </div>
 
-    <UserInfoEdit v-if="!isEdit" @handleCloseAfterSave="closeAfterSave"></UserInfoEdit>
+    <UserInfoEdit v-if="!isEdit" @handleCloseAfterSave="closeAfterSave" />
+    
     <div class="content" v-if="isEdit">
-      <div class="email-card">
-        <h3>Name</h3>
-        <div>
-          <p class="user-email">{{ user?.name || "No Name" }}</p>
-        </div>
-        <h3>Email</h3>
-        <div>
-          <p class="user-email">{{ user?.email || 'N/A'}}</p>
-        </div>
-      </div>
-      <div class="info-section">
-        <div class="info-item">
-          <h3>Phone Number</h3>
-          <div>
-            <p class="value">{{ user?.phone || 'N/A' }}</p>
+      <div class="info-grid">
+        <div class="info-section">
+          <div class="info-item">
+            <label class="info-label">Full Name</label>
+            <span class="info-value">{{ user?.name || "Not provided" }}</span>
+          </div>
+          <div class="info-item">
+            <label class="info-label">Email Address</label>
+            <span class="info-value">{{ user?.email || 'Not provided' }}</span>
+          </div>
+          <div class="info-item">
+            <label class="info-label">Phone Number</label>
+            <span class="info-value">{{ user?.phone || 'Not provided' }}</span>
           </div>
         </div>
-      </div>
-      <div class="address-section">
-        <h3>Address</h3>
-        <div>
-          <p>{{ user?.address?.street || 'N/A'}}</p>
-          <p>{{ user?.address?.barangay || 'N/A'}}</p>
-          <p>{{ user?.address?.city || 'N/A'}}, {{ user?.address?.province || 'N/A'}}</p>
-          <p v-if="user?.address?.zipCode">Zip: {{ user?.address.zipCode || 'N/A'}}</p>
+
+        <div class="address-section">
+          <h4 class="section-title">Address Information</h4>
+          <div class="address-grid">
+            <div class="address-item">
+              <label class="info-label">Street</label>
+              <span class="info-value">{{ user?.address?.street || 'Not provided' }}</span>
+            </div>
+            <div class="address-item">
+              <label class="info-label">Barangay</label>
+              <span class="info-value">{{ user?.address?.barangay || 'Not provided' }}</span>
+            </div>
+            <div class="address-item">
+              <label class="info-label">City</label>
+              <span class="info-value">{{ user?.address?.city || 'Not provided' }}</span>
+            </div>
+            <div class="address-item">
+              <label class="info-label">Province</label>
+              <span class="info-value">{{ user?.address?.province || 'Not provided' }}</span>
+            </div>
+            <div class="address-item">
+              <label class="info-label">ZIP Code</label>
+              <span class="info-value">{{ user?.address?.zipCode || 'Not provided' }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -61,114 +79,196 @@ const closeAfterSave = () => {
 
 
 <style scoped>
-h3 {
-  font-size: 1rem;
-  font-weight: 500;
-  color: #1a1a1a;
+.user-info-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  background: #f9fafb;
 }
 
 .card-title {
-  font-size: 1.1rem;
+  font-size: 1.125rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #111827;
+  margin: 0;
 }
 
-
-.user-card {
-  animation: fadeIn .3s ease-out;
-  width: 100%;
-  padding: 1.5rem;
-  margin: 1rem auto;
-  border-radius: 12px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  color: #333;
-  transition: all 0.3s ease-in-out;
+.edit-btn {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  position: relative;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.content {
-  animation: fadeIn .3s ease-out;
-}
-
-.edit-info {
-  height: 1.4rem;
-  aspect-ratio: 1;
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  border: 0;
-  background-color: transparent;
+.edit-btn:hover {
+  background: #f3f4f6;
+  border-color: #10b981;
 }
 
 .edit-icon,
 .close-icon {
-  height: 1.4rem;
-  aspect-ratio: 1;
+  width: 18px;
+  height: 18px;
+  color: #6b7280;
 }
 
-.close-icon {
-  color: var(--secondary-color);
-  height: 1.8rem;
-  aspect-ratio: 1;
+.edit-btn:hover .edit-icon,
+.edit-btn:hover .close-icon {
+  color: #10b981;
 }
 
-.user-email {
-  color: #555;
-  font-size: 0.95rem;
-  margin-bottom: .5rem;
+.content {
+  padding: 1.5rem;
+  animation: fadeIn 0.3s ease-out;
 }
 
-.info-section,
-.address-section {
-  margin-top: .5rem;
+.info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .info-item {
   display: flex;
   justify-content: space-between;
-  padding: 0.4rem 0;
-
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
 }
 
-.address-section div,
-.info-item div,
-.email-card div {
-  width: 100%;
+.info-item:last-child {
+  border-bottom: none;
 }
 
-
-
-p {
-  padding: 8px 0;
-  color: #383737;
-  margin: 0.2rem 0;
-  font-size: 0.95rem;
-
-  width: 100%;
-  border-bottom: 1px solid #e0e0e0;
+.info-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  min-width: 120px;
 }
 
-.address-section div p:last-child {
-  border: 0;
+.info-value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #111827;
+  text-align: right;
 }
 
+.address-section {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 1.5rem;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 1rem 0;
+}
+
+.address-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.address-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #f3f4f6;
+}
+
+.address-item .info-label {
+  min-width: auto;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #9ca3af;
+}
+
+.address-item .info-value {
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
 /* Responsive */
-@media (max-width: 480px) {
-
-  .user-card {
-
-    margin: 0;
+@media (max-width: 768px) {
+  .card-header {
+    padding: 1rem;
   }
-
+  
+  .content {
+    padding: 1rem;
+  }
+  
   .info-item {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.25rem;
   }
+  
+  .info-label {
+    min-width: auto;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .info-value {
+    text-align: left;
+    font-size: 0.875rem;
+  }
+  
+  .address-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
+@media (max-width: 480px) {
+  .card-header {
+    padding: 0.75rem;
+  }
+  
+  .content {
+    padding: 0.75rem;
+  }
+  
+  .card-title {
+    font-size: 1rem;
+  }
 }
 </style>
