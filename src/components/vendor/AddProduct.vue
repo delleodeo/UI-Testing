@@ -33,6 +33,11 @@ const pendingImages = ref<string[]>([])
 /** index in pendingImages currently being cropped */
 const pendingIndex = ref<number>(-1)
 
+// Replace the compression settings
+const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB max after compression (increased from 50MB)
+const COMPRESSION_QUALITY = 0.8 // 80% quality
+const MAX_DIMENSION = 2560 // Max width/height (increased for better quality with large images)
+
 /* ------------------------------------------------------------------ */
 /* Form State                                                         */
 /* ------------------------------------------------------------------ */
@@ -53,6 +58,79 @@ const form = reactive({
     isHot?: boolean
   }[]
 })
+
+/* ------------------------------------------------------------------ */
+/* Image Compression Function                                         */
+/* ------------------------------------------------------------------ */
+function compressImage(file: File, maxSizeKB = 1024, quality = COMPRESSION_QUALITY): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')!
+    const img = new Image()
+    
+    img.onload = () => {
+      // Calculate new dimensions
+      let { width, height } = img
+      const maxDim = MAX_DIMENSION
+      
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height / width) * maxDim)
+          width = maxDim
+        } else {
+          width = Math.round((width / height) * maxDim)
+          height = maxDim
+        }
+      }
+      
+      canvas.width = width
+      canvas.height = height
+      
+      // Draw and compress
+      ctx.drawImage(img, 0, 0, width, height)
+      
+      // Try different quality levels to get under size limit
+      const tryCompress = (currentQuality: number) => {
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error('Failed to compress image'))
+            return
+          }
+          
+          // If size is still too large and quality can be reduced further
+          if (blob.size > maxSizeKB * 1024 && currentQuality > 0.2) {
+            console.log(`Compression at quality ${currentQuality} resulted in ${(blob.size/1024/1024).toFixed(2)}MB, trying lower quality`)
+            // Try a lower quality
+            tryCompress(Math.max(0.2, currentQuality - 0.1))
+          } else {
+            console.log(`Final compression: ${(blob.size/1024/1024).toFixed(2)}MB at quality ${currentQuality}`)
+            resolve(blob)
+          }
+        }, file.type || 'image/jpeg', currentQuality)
+      }
+      
+      tryCompress(quality)
+    }
+    
+    img.onerror = () => {
+      reject(new Error('Failed to load image'))
+    }
+    
+    img.src = URL.createObjectURL(file)
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/* File Size Validation                                               */
+/* ------------------------------------------------------------------ */
+function validateFileSize(file: File): boolean {
+  const maxSize = 100 * 1024 * 1024 // 100MB original file limit
+  if (file.size > maxSize) {
+    Alert(`File "${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum allowed: 100MB`, 'warning', 'var(--secondary-color)', 3000)
+    return false
+  }
+  return true
+}
 
 /* ------------------------------------------------------------------ */
 /* Category Toggle (mutate instead of reassign reactive array)        */
@@ -80,29 +158,90 @@ function removeImage(index: number) {
 }
 
 /* ------------------------------------------------------------------ */
-/* File Selection                                                     */
+/* File Selection with Enhanced Large File Handling                  */
 /* ------------------------------------------------------------------ */
-function handleFileSelect(files: FileList | null, type: 'main' | 'option', optionIndex?: number) {
+async function handleFileSelect(files: FileList | null, type: 'main' | 'option', optionIndex?: number) {
   if (!files || files.length === 0) return
 
   currentImageType.value = type
   if (optionIndex !== undefined) currentOptionIndex.value = optionIndex
 
-  const imagePromises = Array.from(files).map(file => fileToDataUrl(file))
-  Promise.all(imagePromises).then(images => {
+  // Enhanced file validation for large files
+  const validFiles = Array.from(files).filter(file => {
+    // Check file type first
+    if (!file.type.startsWith('image/')) {
+      Alert(`"${file.name}" is not a valid image file.`, 'warning', 'var(--secondary-color)', 3000)
+      return false
+    }
+    
+    // Check file size (increased limit)
+    const maxSize = 100 * 1024 * 1024 // 100MB original file limit
+    if (file.size > maxSize) {
+      Alert(`File "${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum allowed: 100MB`, 'warning', 'var(--secondary-color)', 3000)
+      return false
+    }
+    
+    // Log file info for debugging
+    console.log(`Processing file: ${file.name}, Size: ${(file.size / 1024 / 1024).toFixed(2)}MB, Type: ${file.type}`)
+    return true
+  })
+
+  if (validFiles.length === 0) {
+    Alert('No valid images selected. Please try again.', 'warning', 'var(--secondary-color', 2000)
+    return
+  }
+
+  try {
+    isUploading.value = true
+    Alert(`Processing ${validFiles.length} image(s)...`, 'info', 'var(--primary-color)', 2000)
+    
+    const imagePromises = validFiles.map(async (file, index) => {
+      try {
+        Alert(`Compressing image ${index + 1}/${validFiles.length}...`, 'info', 'var(--primary-color)', 1000)
+        
+        // Use more aggressive compression for very large files
+        const targetSizeKB = file.size > 10 * 1024 * 1024 ? 512 : 1024 // 512KB for files > 10MB
+        const compressedBlob = await compressImage(file, targetSizeKB)
+        
+        console.log(`Compressed ${file.name}: ${(file.size / 1024 / 1024).toFixed(2)}MB → ${(compressedBlob.size / 1024 / 1024).toFixed(2)}MB`)
+
+        // Convert compressed blob to data URL with error handling
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = e => resolve(e.target?.result as string)
+          reader.onerror = () => reject(new Error(`Failed to read compressed file: ${file.name}`))
+          reader.readAsDataURL(compressedBlob)
+        })
+      } catch (error) {
+        console.error('Error compressing image:', error)
+        Alert(`Failed to compress "${file.name}". Using original file.`, 'warning', 'var(--secondary-color)', 2000)
+        // Fallback to original file if compression fails
+        return fileToDataUrl(file)
+      }
+    })
+    
+    const images = await Promise.all(imagePromises)
     pendingImages.value = images
     showImagePreview.value = true
     pendingIndex.value = -1
-  })
+    
+    Alert(`Successfully processed ${images.length} image(s)!`, 'success', 'var(--primary-color)', 1500)
+  } catch (error) {
+    console.error('Error processing images:', error)
+    Alert('Error processing images. Please try again with smaller files.', 'error', 'var(--secondary-color)', 3000)
+  } finally {
+    isUploading.value = false
+  }
 }
 
 async function handleMainImageUpload(e: Event) {
   const files = (e.target as HTMLInputElement).files
-  handleFileSelect(files, 'main')
+  await handleFileSelect(files, 'main')
 }
+
 async function handleOptionImageUpload(e: Event, index: number) {
   const files = (e.target as HTMLInputElement).files
-  handleFileSelect(files, 'option', index)
+  await handleFileSelect(files, 'option', index)
 }
 
 /* ------------------------------------------------------------------ */
@@ -125,6 +264,7 @@ async function skipCropping() {
     await uploadImagesDirectly()
   } catch (err) {
     console.error(err)
+    Alert('Failed to upload images. Please try again.', 'error', 'var(--secondary-color)', 2000)
   } finally {
     isUploading.value = false
   }
@@ -144,18 +284,65 @@ async function uploadImagesDirectly() {
 
     for (const imageSrc of imagesToUpload) {
       const blob = dataUrlToBlob(imageSrc)
-      const url = await uploadBlob(blob, 'image.jpg')
-      if (currentImageType.value === 'main') {
-        form.imageUrls.push(url)
+      
+      // Double-check blob size before upload
+      if (blob.size > MAX_FILE_SIZE) {
+        console.warn('Image still too large after compression:', blob.size / 1024 / 1024, 'MB')
+        // Try additional compression
+        const img = new Image()
+        
+        const compressedBlob = await new Promise<Blob>((resolve, reject) => {
+          img.onload = () => {
+            const canvas = document.createElement('canvas')
+            const ctx = canvas.getContext('2d')!
+            
+            // Reduce dimensions if needed
+            let { width, height } = img
+            const scaleFactor = Math.sqrt(MAX_FILE_SIZE / blob.size) * 0.9
+            
+            width = Math.floor(width * scaleFactor)
+            height = Math.floor(height * scaleFactor)
+            
+            canvas.width = width
+            canvas.height = height
+            
+            ctx.drawImage(img, 0, 0, width, height)
+            canvas.toBlob(
+              newBlob => {
+                if (newBlob) resolve(newBlob)
+                else reject(new Error('Failed to compress image'))
+              },
+              'image/jpeg',
+              0.7 // Lower quality for final attempt
+            )
+          }
+          
+          img.onerror = () => reject(new Error('Failed to load image for final compression'))
+          img.src = imageSrc
+        })
+        
+        const url = await uploadBlob(compressedBlob, 'compressed-image.jpg')
+        updateFormWithImage(url)
       } else {
-        form.option[currentOptionIndex.value].imageUrl = url
+        const url = await uploadBlob(blob, 'image.jpg')
+        updateFormWithImage(url)
       }
     }
   } catch (error) {
     console.error('Failed to upload images:', error)
+    Alert(`Upload failed: ${error.message || 'Unknown error'}. Try a smaller file or different format.`, 'error', 'var(--secondary-color)', 3000)
+    throw error
   } finally {
     pendingImages.value = []
     showImagePreview.value = false
+  }
+}
+
+function updateFormWithImage(url: string) {
+  if (currentImageType.value === 'main') {
+    form.imageUrls.push(url)
+  } else {
+    form.option[currentOptionIndex.value].imageUrl = url
   }
 }
 
@@ -196,6 +383,12 @@ async function handleCropComplete(cropped: CropResult) {
         filename
     }
 
+    // Additional compression for cropped images if they're too large
+    if (blob.size > MAX_FILE_SIZE) {
+      const compressedBlob = await compressImage(new File([blob], filename), 1024, 0.7)
+      blob = compressedBlob
+    }
+
     // Ensure correct filename for server
     if (!filename.endsWith('.jpg') && blob.type === 'image/jpeg') {
       filename = 'cropped-image.jpg'
@@ -207,15 +400,7 @@ async function handleCropComplete(cropped: CropResult) {
     const uploadedUrl = await uploadBlob(blob, filename)
 
     // Update form with uploaded image URL
-    if (currentImageType.value === 'main') {
-      form.imageUrls.push(uploadedUrl)
-    } else {
-      const idx = currentOptionIndex.value
-      if (idx >= 0 && idx < form.option.length) {
-        form.option[idx].imageUrl = uploadedUrl
-
-      }
-    }
+    updateFormWithImage(uploadedUrl)
 
     // Remove processed image from pending queue
     if (pendingIndex.value > -1) {
@@ -236,8 +421,11 @@ async function handleCropComplete(cropped: CropResult) {
     currentImageSrc.value = ''
     pendingIndex.value = -1
     showCropper.value = false
+    
+    Alert('Image uploaded successfully!', 'success', 'var(--primary-color)', 1500)
   } catch (error) {
     console.error('Failed to upload cropped image:', error)
+    Alert('Failed to upload image. Please try again.', 'error', 'var(--secondary-color)', 2000)
   } finally {
     if (tempUrl?.startsWith('blob:')) URL.revokeObjectURL(tempUrl)
   }
@@ -266,29 +454,36 @@ function cancelImageSelection() {
   pendingIndex.value = -1
 }
 
-
 async function uploadBlob(blob: Blob, filename: string): Promise<string> {
   const formData = new FormData()
   formData.append('images', blob, filename)
 
-  const uploadResponse = await fetch(`${API_BASE_URL}/upload`, {
-    method: 'POST',
-    body: formData
-  })
+  try {
+    const uploadResponse = await fetch(`${API_BASE_URL}/upload`, {
+      method: 'POST',
+      body: formData,
+      // Add timeout and proper headers
+      signal: AbortSignal.timeout(30000), // 30 second timeout
+    })
 
-  if (!uploadResponse.ok) {
-    const serverText = await uploadResponse.text().catch(() => '')
-    throw new Error(
-      `Upload failed (${uploadResponse.status} ${uploadResponse.statusText})${serverText ? `: ${serverText}` : ''}`
-    )
+    if (!uploadResponse.ok) {
+      const serverText = await uploadResponse.text().catch(() => '')
+      throw new Error(
+        `Upload failed (${uploadResponse.status} ${uploadResponse.statusText})${serverText ? `: ${serverText}` : ''}`
+      )
+    }
+
+    const data = await uploadResponse.json()
+    const uploadedUrl: string | undefined = data?.images?.[0]?.url ?? data?.url
+    if (!uploadedUrl) throw new Error('Upload succeeded but response missing image URL.')
+    return uploadedUrl
+  } catch (error) {
+    if (error.name === 'TimeoutError') {
+      throw new Error('Upload timed out. Please check your connection and try again.')
+    }
+    throw error
   }
-
-  const data = await uploadResponse.json()
-  const uploadedUrl: string | undefined = data?.images?.[0]?.url ?? data?.url
-  if (!uploadedUrl) throw new Error('Upload succeeded but response missing image URL.')
-  return uploadedUrl
 }
-
 
 function inferFilenameFromType(mime?: string | null): string | null {
   if (!mime) return null;
@@ -297,7 +492,7 @@ function inferFilenameFromType(mime?: string | null): string | null {
     case 'image/webp': return 'cropped-image.webp';
     case 'image/avif': return 'cropped-image.avif';
     case 'image/jpeg':
-    case 'image/jpg': return 'cropped-image.jpg'; // ✅ covers jpeg/jpg
+    case 'image/jpg': return 'cropped-image.jpg';
     default: return 'cropped-image.jpg';
   }
 }
@@ -463,8 +658,14 @@ async function submitProduct() {
           <p class="section-description">Upload high-quality images of your product</p>
 
           <div class="upload-area">
-            <input type="file" multiple accept="image/*" @change="handleMainImageUpload" class="upload-input"
-              id="main-images" />
+            <input 
+              type="file" 
+              multiple 
+              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/bmp,image/tiff" 
+              @change="handleMainImageUpload" 
+              class="upload-input"
+              id="main-images" 
+            />
             <label for="main-images" class="upload-label">
               <div class="upload-icon">📸</div>
               <div class="upload-text">
@@ -520,8 +721,13 @@ async function submitProduct() {
                 <div class="form-field">
                   <label class="field-label">Variant Image</label>
                   <div class="upload-area variant-upload">
-                    <input type="file" accept="image/*" @change="(e) => handleOptionImageUpload(e, index)"
-                      class="upload-input" :id="`option-image-${index}`" />
+                    <input 
+                      type="file" 
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/bmp,image/tiff" 
+                      @change="(e) => handleOptionImageUpload(e, index)"
+                      class="upload-input" 
+                      :id="`option-image-${index}`" 
+                    />
                     <label :for="`option-image-${index}`" class="upload-label variant-label">
                       <div v-if="!opt.imageUrl" class="upload-content">
                         <div class="upload-icon">📷</div>
@@ -562,7 +768,6 @@ async function submitProduct() {
     </div>
 
   </div>
-
   <!-- Image Preview Modal -->
   <div v-if="showImagePreview" class="cropper">
     <div class="cropper-overlay" @click="cancelImageSelection"></div>
@@ -1083,35 +1288,6 @@ section {
 .add-option-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 16px 24px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
-}
-
-.add-option-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px -3px rgba(16, 185, 129, 0.4);
-}
-
-.btn-icon {
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-.submit-section {
-  margin-top: 48px;
-  padding-top: 32px;
-  border-top: 2px solid #f1f5f9;
-  display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
