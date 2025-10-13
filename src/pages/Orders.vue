@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { BuildingStorefrontIcon } from "@heroicons/vue/24/outline"
+import { BuildingStorefrontIcon, ChatBubbleLeftEllipsisIcon } from "@heroicons/vue/24/outline"
 import { useOrderStore } from '../stores/OrderStores'
 import type { Order, OrderItem, OrderStatus, PaymentMethod } from '../types/order'
 import { handleImageError } from '../utils/fallbackImage'
+import CustomerChatModal from '../components/CustomerChatModal.vue'
 
 const orderStore = useOrderStore()
 const orders = computed<Order[]>(() => orderStore.orders)
+
+// Chat modal state
+const showChatModal = ref(false)
+const selectedOrderId = ref('')
+const selectedVendorName = ref('')
 
 onMounted(async () => {
   await orderStore.fetchOrders()
@@ -31,13 +37,13 @@ const getOrderCount = (status: OrderStatus) =>
 const capitalize = (val: string) =>
   val.charAt(0).toUpperCase() + val.slice(1)
 
-const formatDate = (dateStr: string) =>
+const formatDate = (dateStr: string | Date) =>
   new Date(dateStr).toLocaleDateString('en-PH', {
     year: 'numeric', month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit'
   })
 
-const formatDeliveryTime = (dateStr: string) =>
+const formatDeliveryTime = (dateStr: string | Date) =>
   new Date(dateStr).toLocaleTimeString('en-PH', {
     hour: '2-digit', minute: '2-digit'
   }) + ' Delivered'
@@ -69,6 +75,24 @@ const getStatusDisplayText = (status: OrderStatus) => ({
 })[status] || status
 
 
+// Chat functions
+const openChat = (order: Order) => {
+  selectedOrderId.value = order._id || order.orderId
+  selectedVendorName.value = 'TechStore' // You can get this from order data
+  showChatModal.value = true
+}
+
+const closeChat = () => {
+  showChatModal.value = false
+  selectedOrderId.value = ''
+  selectedVendorName.value = ''
+}
+
+// Check if order has agreement shipping
+const hasAgreementShipping = (order: Order) => {
+  return order.shippingOption === 'agreement'
+}
+
 // Action handlers
 const requestRefund = (orderId: string) => console.log('Request refund:', orderId)
 const writeReview = (orderId: string) => console.log('Write review:', orderId)
@@ -80,6 +104,14 @@ const rateOrder = (orderId: string, rating: number) =>
 
 <template>
   <div class="orders-wrapper">
+    <!-- Chat Modal -->
+    <CustomerChatModal 
+      :show="showChatModal"
+      :order-id="selectedOrderId"
+      :vendor-name="selectedVendorName"
+      @close="closeChat"
+    />
+
     <!-- Top Tab Navigation -->
     <div class="tab-nav">
       <div class="tab-nav-inner">
@@ -114,6 +146,15 @@ const rateOrder = (orderId: string, rating: number) =>
                   <BuildingStorefrontIcon class="icon"></BuildingStorefrontIcon>
                 </span>
                 <span class="store-name">TechStore</span>
+                <!-- Chat button for agreement orders -->
+                <button 
+                  v-if="hasAgreementShipping(order)" 
+                  @click="openChat(order)"
+                  class="chat-btn"
+                  title="Chat with vendor about delivery"
+                >
+                  <ChatBubbleLeftEllipsisIcon class="chat-icon" />
+                </button>
               </div>
               <span :class="['order-status', getStatusClass(order.status)]">
                 {{ getStatusDisplayText(order.status) }}
@@ -139,6 +180,17 @@ const rateOrder = (orderId: string, rating: number) =>
               <div class="delivery-message">Tracking: {{ order.trackingNumber }}</div>
             </div>
             <div class="delivery-arrow">›</div>
+          </div>
+
+          <!-- Agreement Shipping Info -->
+          <div v-if="hasAgreementShipping(order)" class="delivery-info-section">
+            <div class="delivery-method">
+              <span class="delivery-label">Delivery Method:</span>
+              <span class="delivery-value">Customer Agreement</span>
+              <button @click="openChat(order)" class="chat-link">
+                💬 Chat about delivery
+              </button>
+            </div>
           </div>
 
           <!-- Order Items -->
@@ -815,5 +867,70 @@ const rateOrder = (orderId: string, rating: number) =>
     animation: none;
     opacity: 1;
   }
+}
+
+/* Chat Button Styles */
+.chat-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  color: var(--primary-color);
+  transition: all 0.2s ease;
+  margin-left: 0.5rem;
+}
+
+.chat-btn:hover {
+  background: var(--primary-50);
+  transform: scale(1.1);
+}
+
+.chat-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Delivery Info Section */
+.delivery-info-section {
+  padding: var(--spacing-2) var(--spacing-3);
+  background: #f0f9ff;
+  border-top: 1px solid var(--gray-100);
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.delivery-method {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 14px;
+}
+
+.delivery-label {
+  color: var(--gray-600);
+  font-weight: 500;
+}
+
+.delivery-value {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.chat-link {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+.chat-link:hover {
+  background: var(--primary-600);
+  transform: translateY(-1px);
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, nextTick, computed, watch } from "vue";
 import { formatToPHCurrency } from "../../../utils/currencyFormat";
 import {
   MagnifyingGlassIcon,
@@ -13,23 +13,124 @@ import {
   XCircleIcon,
   EllipsisHorizontalCircleIcon,
   ChatBubbleLeftEllipsisIcon,
+  PaperAirplaneIcon,
 } from "@heroicons/vue/24/outline";
-import { Order } from "../../../types/order";
+import { Order, AgreementMessage } from "../../../types/order";
 import { useOrdersStore, OrderStatus } from "../../../stores/vendor/vendorOrderStore";
+import { io, Socket } from "socket.io-client";
 
 
 const store = useOrdersStore();
 
 const expanded = ref<Set<string>>(new Set());
 const showFilters = ref(false);
-const isAgreementModalVisible = ref(false);
-const currentAgreementDetails = ref("");
+const activeChatOrder = ref<Order | null>(null);
+const newMessage = ref("");
+const isSendingMessage = ref(false);
+const isConnected = ref(false);
+let socket: Socket | null = null;
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 5;
 
+
+// Auto-scroll to bottom when messages change
+watch(() => activeChatOrder.value?.agreementMessages, () => {
+  nextTick(() => {
+    scrollToBottom();
+  });
+}, { deep: true, flush: 'post' });
+
+
+function connectSocket() {
+  if (socket?.connected) return;
+
+  // Use the correct API base URL without /v1 path for Socket.IO
+  const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+  const socketUrl = apiUrl.replace('/v1', ''); // Remove /v1 if present
+  
+  console.log('Connecting to Socket.IO server:', socketUrl);
+  
+  socket = io(socketUrl, {
+    autoConnect: true,
+    reconnection: true,
+    reconnectionAttempts: maxReconnectAttempts,
+    reconnectionDelay: 1000,
+    timeout: 10000,
+    transports: ['websocket', 'polling'], // Try websocket first, fallback to polling
+    upgrade: true,
+    forceNew: true,
+  });
+
+  socket.on('connect', () => {
+    console.log('Socket.IO connected successfully with ID:', socket.id);
+    isConnected.value = true;
+    reconnectAttempts = 0;
+  });
+
+  socket.on('disconnect', (reason) => {
+    console.log('Socket.IO disconnected:', reason);
+    isConnected.value = false;
+  });
+
+  socket.on('connect_error', (error) => {
+    console.error('Socket.IO connection error:', error);
+    isConnected.value = false;
+    reconnectAttempts++;
+    
+    if (reconnectAttempts < maxReconnectAttempts) {
+      setTimeout(() => {
+        console.log(`Attempting to reconnect... (${reconnectAttempts}/${maxReconnectAttempts})`);
+        socket.connect();
+      }, 2000 * Math.pow(2, reconnectAttempts));
+    }
+  });
+
+  // Listen for new messages from the server
+  socket.on('new_agreement_message', (data: { orderId: string; message: AgreementMessage }) => {
+    console.log('Received new message:', data);
+    
+    // Find the order in the main store list
+    const orderIndex = store.orders.findIndex(o => o._id === data.orderId);
+    
+    // Update ONLY the main store list. Vue's reactivity will handle the rest.
+    if (orderIndex !== -1) {
+      const order = store.orders[orderIndex];
+      if (!order.agreementMessages) {
+        order.agreementMessages = [];
+      }
+      // Add the message only if it doesn't already exist (failsafe)
+      if (!order.agreementMessages.some(m => m.timestamp === data.message.timestamp && m.message === data.message.message)) {
+        order.agreementMessages.push(data.message);
+      }
+    }
+  });
+}
+
+function scrollToBottom() {
+  const chatHistoryEl = document.querySelector('.chat-history');
+  if (chatHistoryEl) {
+    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  }
+}
 
 onMounted(() => {
   store.fetchOrders().catch(e => {
     console.error("Orders fetch failed:", e);
   });
+
+  // Connect to Socket.IO
+  connectSocket();
+});
+
+onUnmounted(() => {
+  // Clean disconnect
+  if (socket) {
+    if (activeChatOrder.value) {
+      socket.emit('leave_order', activeChatOrder.value._id);
+    }
+    socket.disconnect();
+    socket = null;
+  }
 });
 
 
@@ -404,40 +505,162 @@ function expandLeave(el: Element) {
   });
 }
 
+// Auto-reconnect logic
+function handleReconnect() {
+  if (!socket?.connected && reconnectAttempts < maxReconnectAttempts) {
+    setTimeout(() => {
+      console.log(`Attempting to reconnect... (${reconnectAttempts + 1}/${maxReconnectAttempts})`);
+      connectSocket();
+    }, 2000 * Math.pow(2, reconnectAttempts)); // Exponential backoff
+  }
+}
+
 /* -------------------------------------------------------------------------------------------------
  * Filters & Search
  * ------------------------------------------------------------------------------------------------- */
 function resetFilters() {
   store.resetFilters();
 }
+
 function onSearchInput(e: Event) {
   const target = e.target as HTMLInputElement;
   store.setSearch(target.value);
 }
 
-function showAgreementDetails(order: Order) {
-  currentAgreementDetails.value = order.agreementDetails || "No details provided.";
-  isAgreementModalVisible.value = true;
+async function openAgreementChat(order: Order) {
+  try {
+    const fullOrder = await store.fetchSingleOrder(order._id);
+    if (fullOrder) {
+      activeChatOrder.value = fullOrder;
+      
+      // Ensure agreementMessages array exists
+      if (!activeChatOrder.value.agreementMessages) {
+        activeChatOrder.value.agreementMessages = [];
+      }
+      
+      // Join the specific order room
+      if (socket?.connected) {
+        socket.emit('join_order', order._id);
+        console.log('Joined order room:', order._id);
+      }
+      
+      // Auto-scroll to bottom after modal opens
+      await nextTick();
+      scrollToBottom();
+    } else {
+      alert("Could not load chat history.");
+    }
+  } catch (error) {
+    console.error("Error opening chat:", error);
+    alert("Could not open chat. Please try again.");
+  }
 }
 
 function closeAgreementModal() {
-  isAgreementModalVisible.value = false;
+  if (socket?.connected && activeChatOrder.value) {
+    socket.emit('leave_order', activeChatOrder.value._id);
+    console.log('Left order room:', activeChatOrder.value._id);
+  }
+  activeChatOrder.value = null;
+  newMessage.value = "";
 }
+
+async function sendAgreementMessage() {
+  if (!newMessage.value.trim() || !activeChatOrder.value || isSendingMessage.value) return;
+
+  const messageContent = newMessage.value.trim();
+  const orderId = activeChatOrder.value._id;
+
+  isSendingMessage.value = true;
+  
+  try {
+    // Clear input immediately for better UX
+    newMessage.value = "";
+    
+    // Send message through store (which will also emit socket event)
+    await store.addAgreementMessage(orderId, messageContent);
+    
+    console.log('Message sent successfully');
+    
+    // Auto-scroll to bottom
+    await nextTick();
+    scrollToBottom();
+    
+  } catch (error) {
+    console.error("Failed to send message:", error);
+    alert("Could not send message. Please try again.");
+    // Restore message content on error
+    newMessage.value = messageContent;
+  } finally {
+    isSendingMessage.value = false;
+  }
+}
+
+// Handle Enter key in textarea
+function handleKeyDown(event: KeyboardEvent) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    sendAgreementMessage();
+  }
+}
+
 </script>
 
 <template>
   <div class="order-cards-page">
 
-    <!-- Agreement Details Modal -->
+    <!-- Agreement Chat Modal -->
     <transition name="fade">
-      <div v-if="isAgreementModalVisible" class="agreement-modal-overlay" @click="closeAgreementModal">
+      <div v-if="activeChatOrder" class="agreement-modal-overlay" @click="closeAgreementModal">
         <div class="agreement-modal-container" @click.stop>
           <div class="agreement-modal-header">
-            <h3>Agreement Details</h3>
+            <div class="chat-header-info">
+              <h3>Agreement Chat</h3>
+              <div class="connection-status">
+                <span v-if="isConnected" class="status-indicator connected">●</span>
+                <span v-else class="status-indicator disconnected">●</span>
+                <span class="status-text">{{ isConnected ? 'Connected' : 'Reconnecting...' }}</span>
+              </div>
+            </div>
             <button @click="closeAgreementModal" class="modal-close-btn">&times;</button>
           </div>
-          <div class="agreement-modal-body">
-            <p>{{ currentAgreementDetails }}</p>
+          
+          <div class="chat-history" ref="chatHistoryRef">
+            <!-- Customer's initial message -->
+            <div v-if="activeChatOrder.agreementDetails" class="message-bubble customer initial">
+              <p class="msg-text">{{ activeChatOrder.agreementDetails }}</p>
+              <span class="msg-meta">Initial Note</span>
+            </div>
+
+            <!-- Chat messages -->
+            <div v-for="(msg, index) in (activeChatOrder.agreementMessages || [])" :key="index"
+              :class="['message-bubble', msg.sender]">
+              <p class="msg-text">{{ msg.message }}</p>
+              <span class="msg-meta">{{ dateLabel(msg.timestamp) }}</span>
+            </div>
+            
+            <!-- Empty state -->
+            <div v-if="!activeChatOrder.agreementDetails && (!activeChatOrder.agreementMessages || activeChatOrder.agreementMessages.length === 0)" class="empty-chat">
+              <ChatBubbleLeftEllipsisIcon class="empty-icon" />
+              <p>Start the conversation with your customer</p>
+            </div>
+          </div>
+          
+          <div class="chat-input-area">
+            <textarea 
+              v-model="newMessage" 
+              placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
+              @keydown="handleKeyDown"
+              :disabled="isSendingMessage || !isConnected"
+              ref="messageInput"
+            ></textarea>
+            <button 
+              @click="sendAgreementMessage" 
+              class="btn-send" 
+              :disabled="isSendingMessage || !newMessage.trim() || !isConnected"
+            >
+              <PaperAirplaneIcon class="icon mini" />
+            </button>
           </div>
         </div>
       </div>
@@ -548,11 +771,11 @@ function closeAgreementModal() {
             <span class="lbl">Shipping Fee:</span>
             <span class="val strong">{{ currency(o.shippingFee) }}</span>
           </div>
-            <div class="info-line">
+          <div class="info-line">
             <span class="lbl">Shipping Mode:</span>
             <span class="val strong">
               {{o.shippingOption}}
-              <button v-if="o.shippingOption === 'agreement'" class="btn-icon" @click="showAgreementDetails(o)">
+              <button v-if="o.shippingOption === 'agreement'" class="btn-icon" @click="openAgreementChat(o)">
                 <ChatBubbleLeftEllipsisIcon class="icon mini" />
               </button>
             </span>
@@ -1309,62 +1532,167 @@ function closeAgreementModal() {
   color: #fff;
 }
 
-.agreement-modal-body {
-  padding: 1.25rem;
+.chat-history {
+  flex-grow: 1;
+  padding: 1rem 1.25rem;
   overflow-y: auto;
-  color: #cbd5e1;
-  font-size: 0.85rem;
-  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  scroll-behavior: smooth;
 }
 
-.agreement-modal-body p {
+.message-bubble {
+  padding: 0.75rem 1rem;
+  border-radius: 1.25rem;
+  max-width: 85%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  line-height: 1.4;
+  word-wrap: break-word;
+  animation: messageSlideIn 0.3s ease-out;
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-bubble.customer {
+  background: rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  border-bottom-left-radius: 0.25rem;
+  align-self: flex-start;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.message-bubble.customer.initial {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.message-bubble.vendor {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  border-bottom-right-radius: 0.25rem;
+  align-self: flex-end;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.msg-text {
   margin: 0;
-  white-space: pre-wrap; /* Preserve line breaks from textarea */
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 0.85rem;
 }
 
-.btn-icon {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: inline-flex;
+.msg-meta {
+  font-size: 0.65rem;
+  margin-top: 0.4rem;
+  opacity: 0.75;
+  font-weight: 500;
+}
+
+.message-bubble.customer .msg-meta {
+  align-self: flex-start;
+}
+
+.message-bubble.vendor .msg-meta {
+  align-self: flex-end;
+}
+
+.empty-chat {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #cbd5e1;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+  flex-grow: 1;
 }
 
-.btn-icon:hover {
-  background: rgba(255, 255, 255, 0.2);
+.empty-icon {
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
+}
+
+.chat-input-area {
+  display: flex;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.chat-input-area textarea {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  padding: 0.75rem 1rem;
+  color: #f1f5f9;
+  font-family: inherit;
+  font-size: 0.85rem;
+  resize: none;
+  outline: none;
+  transition: all 0.2s;
+  min-height: 44px;
+  max-height: 120px;
+  line-height: 1.4;
+}
+
+.chat-input-area textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.chat-input-area textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-send {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-.btn-icon .icon.mini {
-  width: 14px;
-  height: 14px;
+.btn-send:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
 }
 
-@media (max-width: 620px) {
-  .cards-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  }
-
-  .order-card {
-    padding: .9rem .85rem .95rem;
-  }
-
-  .card-head .oid {
-    font-size: .9rem;
-  }
-
-  .expand-btn {
-    font-size: .58rem;
-  }
-
-  .info-line .lbl {
-    font-size: .55rem;
-  }
+.btn-send:active:not(:disabled) {
+  transform: translateY(0);
 }
+
+.btn-send:disabled {
+  background: #475569;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Rest of existing styles remain the same */
 </style>

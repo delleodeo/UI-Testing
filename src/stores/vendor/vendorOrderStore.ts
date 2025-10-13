@@ -231,6 +231,24 @@ export const useOrdersStore = defineStore("vendorOrders", {
       }
     },
 
+    async fetchSingleOrder(orderId: string): Promise<Order | null> {
+      try {
+        const { data } = await api().get<Order>(`/order/${orderId}`);
+        if (data && data._id) {
+          // Update the order in the main list as well
+          const index = this.orders.findIndex(o => o._id === data._id);
+          if (index !== -1) {
+            this.orders[index] = normalizeOrder(data);
+          }
+          return this.orders[index];
+        }
+        return null;
+      } catch (err) {
+        console.error(`Failed to fetch order ${orderId}:`, normalizeAxiosError(err));
+        return null;
+      }
+    },
+
     async updateOrderStatus(id: string, next: OrderStatus) {
       const order = this.orders.find(o => o._id === id);
       if (!order) throw new Error("Order not found");
@@ -305,6 +323,28 @@ export const useOrdersStore = defineStore("vendorOrders", {
         throw new Error(normalizeAxiosError(err));
       } finally {
         this.updatingIds.delete(id);
+      }
+    },
+
+    async addAgreementMessage(orderId: string, message: string) {
+      if (!message.trim()) return;
+
+      this.updatingIds.add(orderId);
+      try {
+        // Make the API call but we don't need to process the response here.
+        // The UI update will be handled by the Socket.IO listener in the component.
+        await api().post(
+          `/order/${encodeURIComponent(orderId)}/agreement-message`,
+          { message }
+        );
+
+      } catch (err) {
+        const errorMsg = normalizeAxiosError(err);
+        Alert(`Failed to send message: ${errorMsg}`, "error");
+        // Re-throw to be caught in the component if needed
+        throw new Error(errorMsg);
+      } finally {
+        this.updatingIds.delete(orderId);
       }
     },
 

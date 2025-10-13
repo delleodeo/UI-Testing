@@ -1,43 +1,55 @@
+export interface AgreementMessage {
+  sender: "customer" | "vendor";
+  message: string;
+  timestamp: string | Date;
+}
+
 export interface OrderItem {
-  _id?: string
-  imgUrl: string
-  name: string
-  label: string
-  quantity: number,
-  price: number,
-  orderProductId: string // MongoDB ObjectId as string
+  _id?: string;
+  imgUrl?: string;
+  label?: string;
+  quantity: number;
+  productId?: string;
+  optionId?: string;
+  price: number;
+  name: string;
 }
 
 export interface Address {
-  street: string
-  barangay: string
-  city: string
-  province: string
-  zipCode: string
+  street?: string;
+  barangay?: string;
+  city?: string;
+  province?: string;
+  zipCode?: string;
 }
 
-export type PaymentMethod = 'wallet' | 'gcash' | 'cod'
-export type OrderStatus = 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled'
+export type OrderStatus =
+  | "pending"
+  | "paid"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
+
+export type PaymentMethod = "wallet" | "gcash" | "cod";
+export type PaymentStatus = "Pending" | "Paid" | "Failed" | "Refunded";
 
 export interface Order {
-  _id: string,
-  name: string,
-  userId: string
-  vendorId: string
-  items: OrderItem[]
-  subTotal: number
-  orderId: string
-  paymentStatus: string
-  shippingAddress: Address
-  trackingNumber: string
-  createdAt: string
-  updatedAt: string
-  paymentMethod: PaymentMethod
-  status: OrderStatus
-  shippingFee: number
-  shippingCarrier?: string;
-  shippedAt?: string;
-  shippingNotes?: string;
-  shippingOption?: string;
-  agreementDetails: string
+  _id: string;
+  orderId?: string;
+  customerId: string;
+  vendorId: string;
+  items: OrderItem[];
+  name: string;
+  shippingOption: string;
+  shippingFee: number;
+  agreementDetails?: string;
+  agreementMessages: AgreementMessage[]; // Correctly typed as an array of objects
+  subTotal: number;
+  paymentStatus: PaymentStatus;
+  shippingAddress: Address;
+  trackingNumber?: string;
+  paymentMethod: PaymentMethod;
+  status: OrderStatus;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
