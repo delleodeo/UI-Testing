@@ -497,15 +497,23 @@ onMounted(() => {
   overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
-  padding: clamp(1rem, 2vw, 2rem);
-  background: rgb(21, 30, 46);
-  background:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.04), transparent 60%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
-    rgb(21, 30, 46);
-  color: #e2e8f0;
+  gap: 1.5rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  background: transparent;
+  color: var(--text-primary);
   padding-bottom: 10rem;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Header */
@@ -515,11 +523,11 @@ onMounted(() => {
   justify-content: space-between;
   gap: 0.75rem;
   align-items: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
   padding: 0.9rem 1rem;
-  backdrop-filter: blur(6px);
+  box-shadow: var(--card-shadow);
 }
 
 .inv-title {
@@ -527,7 +535,7 @@ onMounted(() => {
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: 0.4px;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .inv-header-actions {
@@ -546,21 +554,28 @@ onMounted(() => {
 }
 
 .search-box {
-  flex: 1 1 260px;
+  flex: 1 1 280px;
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  padding: 0.65rem 0.85rem;
-  border-radius: 0.9rem;
+  gap: 0.75rem;
+  background: var(--input-bg);
+  border: 2px solid var(--input-border);
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-box:focus-within {
+  border-color: #1f8b4e;
+  box-shadow: 0 0 0 4px rgba(31, 139, 78, 0.15);
+  background: var(--surface-hover);
 }
 
 .search-box .icon {
   width: 18px;
   height: 18px;
   stroke-width: 2;
-  color: var(--text-light-2);
+  color: var(--text-tertiary);
 }
 
 .search-box input {
@@ -568,44 +583,52 @@ onMounted(() => {
   background: transparent;
   border: none;
   outline: none;
-  color: #fff;
+  color: var(--text-primary);
   font: inherit;
   font-size: 0.88rem;
 }
 
 .search-box input::placeholder {
-  color: var(--text-light-2);
+  color: var(--text-tertiary);
 }
 
 .sort-box {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   padding: 0.45rem 0.65rem;
-  border-radius: 0.9rem;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.sort-box:hover {
+  background: var(--surface-hover);
+  border-color: var(--color-primary);
 }
 
 .sort-label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--text-light-2);
+  color: var(--text-tertiary);
   letter-spacing: 0.4px;
+  text-transform: uppercase;
 }
 
 .sort-box select {
   background: transparent;
   border: none;
   outline: none;
-  color: #fff;
+  color: var(--text-primary);
   font: inherit;
   font-size: 0.88rem;
   cursor: pointer;
 }
 
 .sort-box select option {
-  color: #000;
+  background: var(--surface);
+  color: var(--text-primary);
 }
 
 
@@ -620,10 +643,16 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 1rem;
-  padding: 0px 7px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: 0.5rem 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.filter-group:hover {
+  background: var(--surface-hover);
+  border-color: var(--color-primary);
 }
 
 .filter-group label {
@@ -631,27 +660,28 @@ onMounted(() => {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
-  color: var(--text-light-2);
+  color: var(--text-tertiary);
 }
 
 .filter-group select {
   background-color: transparent;
-
-  padding: 0.6rem 1rem;
+  padding: 0.4rem 0.5rem;
   border: 0;
   font-size: 0.75rem;
-  color: white;
+  color: var(--text-primary);
   font-family: inherit;
   outline: none;
   cursor: pointer;
 }
 
 .filter-group select option {
-  color: black;
+  background: var(--surface);
+  color: var(--text-primary);
 }
 
 .filter-group select:focus {
-  border-color: rgba(255, 255, 255, 0.38);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .filters-actions {
@@ -666,7 +696,7 @@ onMounted(() => {
   gap: 0.7rem;
   align-items: center;
   letter-spacing: 0.5px;
-  color: var(--text-light-2);
+  color: var(--text-tertiary);
   text-transform: uppercase;
   font-weight: 600;
   flex-wrap: wrap;
@@ -687,11 +717,11 @@ onMounted(() => {
 /* Skeleton */
 .inv-skel {
   height: 320px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   background: linear-gradient(110deg,
-      rgba(255, 255, 255, 0.05) 25%,
-      rgba(255, 255, 255, 0.09) 35%,
-      rgba(255, 255, 255, 0.05) 55%);
+      var(--bg-secondary) 25%,
+      var(--surface-hover) 35%,
+      var(--bg-secondary) 55%);
   background-size: 200% 100%;
   animation: shimmer 1.5s linear infinite;
 }
@@ -706,21 +736,37 @@ onMounted(() => {
 .inv-card {
   display: flex;
   flex-direction: column;
-  gap: .55rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 1rem;
-  padding: 1rem .95rem 1.1rem;
+  gap: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  padding: 1.25rem;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(6px);
-  transition: border-color .35s, transform .25s, box-shadow .35s;
+  box-shadow: 0 4px 16px rgba(31, 139, 78, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.inv-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1f8b4e 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .inv-card:hover {
-  border-color: var(--glass-border-hover);
+  border-color: rgba(31, 139, 78, 0.3);
   transform: translateY(-4px);
-  box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 8px 24px rgba(31, 139, 78, 0.15);
+}
+
+.inv-card:hover::before {
+  opacity: 1;
 }
 
 .inv-card.updating {
@@ -733,16 +779,22 @@ onMounted(() => {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 2.4;
-  background: #334155;
+  background: var(--bg-secondary);
   overflow: hidden;
+  border-radius: var(--radius-lg);
 }
 
 .card-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 1rem;
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.inv-card:hover .card-img {
+  transform: scale(1.05);
 }
 
 .card-badges {
@@ -759,14 +811,16 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 2px 6px;
+  padding: 4px 8px;
   font-size: 0.6rem;
   font-weight: 700;
-  border-radius: 1rem;
+  border-radius: var(--radius-full);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: var(--low);
-  color: #000;
+  background: var(--color-warning);
+  color: white;
+  box-shadow: 0 0 0 2px var(--color-warning-light);
+  backdrop-filter: blur(4px);
 }
 
 /* Card body */
@@ -782,7 +836,7 @@ onMounted(() => {
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.4px;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .p-metrics {
@@ -790,7 +844,6 @@ onMounted(() => {
   grid-template-columns: repeat(3, 1fr);
   gap: 0.55rem;
   font-size: 0.75rem;
-  text-align: center;
   text-align: start;
 }
 
@@ -799,14 +852,14 @@ onMounted(() => {
   font-size: 0.55rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--text-light-2);
+  color: var(--text-tertiary);
   margin-bottom: 2px;
   font-weight: 600;
 }
 
 .p-metric .val {
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   white-space: nowrap;
   font-size: 0.8rem;
 }
@@ -814,21 +867,27 @@ onMounted(() => {
 /* Expand button */
 .expand-btn {
   margin-top: 0.25rem;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   padding: 0.55rem 0.7rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-md);
   font: inherit;
   font-size: 0.65rem;
   letter-spacing: 0.6px;
   text-transform: uppercase;
   font-weight: 600;
   cursor: pointer;
-  color: var(--text-light);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: background 0.3s, border-color 0.3s;
+  transition: all 0.2s ease;
+}
+
+.expand-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--color-primary);
+  color: var(--text-primary);
 }
 
 .expand-btn:hover {
@@ -960,11 +1019,12 @@ onMounted(() => {
   width: 70px;
   padding: 0.4rem 0.5rem;
   font-size: 0.75rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 0.5rem;
-  color: #fff;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
   outline: none;
+  transition: all 0.2s ease;
 }
 
 
@@ -975,91 +1035,97 @@ input[type=number]::-webkit-outer-spin-button {
 
 
 .stock-add-field input:focus {
-  border-color: rgba(255, 255, 255, 0.38);
-  box-shadow: var(--focus-ring);
+  border-color: var(--input-border-focus);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 /* Buttons */
 .btn {
-  --btn-bg: #fff;
-  --btn-fg: var(--dashboard-primary);
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: center;
+  gap: 0.5rem;
   border: none;
-  background: var(--btn-bg);
-  color: var(--btn-fg);
+  background: linear-gradient(135deg, #1f8b4e 0%, #26a65b 100%);
+  color: white;
   font: inherit;
-  font-weight: 600;
-  padding: 0.55rem 0.85rem;
-  border-radius: 0.6rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.6px;
+  font-weight: 700;
+  padding: 0.625rem 1rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
   cursor: pointer;
   position: relative;
-  transition: background 0.3s, transform 0.25s, box-shadow 0.3s;
-  box-shadow: 0 4px 14px -6px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(31, 139, 78, 0.25);
 }
 
 .btn:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 28px -8px rgba(0, 0, 0, 0.65);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(31, 139, 78, 0.35);
+  filter: brightness(1.1);
 }
 
 .btn:active:not(:disabled) {
-  transform: translateY(-1px);
+  transform: scale(0.97);
 }
 
 .btn:disabled {
-  opacity: 0.4;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 .btn.outline {
   background: transparent;
-  color: var(--text-color);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
   box-shadow: none;
   font-size: 0.7rem;
   padding: 0.4rem 0.6rem;
 }
 
 .btn.outline:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--surface-hover);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .btn.ghost {
-  background: var(--primary-color);
-  color: var(--text-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   box-shadow: none;
   font-size: 0.7rem;
   padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border-primary);
 }
 
 .filter {
-  border: 0;
+  border: 1px solid var(--color-primary);
   padding: 8px 1rem;
-  background-color: var(--primary-color);
-  border-radius: 1rem;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  border-radius: var(--radius-full);
   color: white;
   cursor: pointer;
-  transition: all 150ms ease-in-out;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
 }
 
 .filter:hover {
-  transform: scale(103%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 
 .btn.ghost:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--surface-hover);
+  border-color: var(--color-primary);
 }
 
 .btn.tiny {
   padding: 0.4rem 0.55rem;
   font-size: 0.65rem;
   letter-spacing: 0.5px;
-  color: white !important;
 }
 
 .btn.small {

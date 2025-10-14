@@ -70,13 +70,14 @@ function select(name) {
 /* ========== MOBILE NAV ========== */
 .mobile-nav {
   display: flex;
-  background: #1e293b;
-  border-top: 1px solid #334155;
+  background: var(--surface);
+  border-top: 1px solid var(--border-primary);
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 100;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 }
 .mobile-nav-item {
   flex: 1;
@@ -85,13 +86,27 @@ function select(name) {
   align-items: center;
   padding: 0.75rem 0.5rem;
   text-decoration: none;
-  color: #ffffff;
-  transition: color 0.2s;
+  color: var(--text-secondary);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   gap: 0.25rem;
+  position: relative;
 }
-.mobile-nav-item:hover,
+.mobile-nav-item:hover {
+  color: var(--color-primary);
+  background: var(--surface-hover);
+}
 .mobile-nav-item.active {
-  color: var(--primary-color);
+  color: var(--color-primary);
+}
+.mobile-nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-primary);
+  border-radius: 0 0 3px 3px;
 }
 .mobile-nav-icon {
   width: 20px;
@@ -99,7 +114,7 @@ function select(name) {
 }
 .mobile-nav-item span {
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* ========== DESKTOP SIDEBAR ========== */
@@ -109,10 +124,11 @@ function select(name) {
   left: 0;
   top: 0;
   width: 240px;
-  background: #1e293b;
+  background: var(--surface);
   padding: 1.5rem;
-  border-right: 1px solid #334155;
+  border-right: 1px solid var(--border-primary);
   flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
 }
 .sidebar-con {
   position: fixed;
@@ -126,13 +142,14 @@ function select(name) {
 .logo-icon {
   width: 32px;
   height: 32px;
-  color: #3b82f6;
+  color: var(--color-primary);
 }
 .logo h2 {
-  color: white;
+  color: var(--text-primary);
   margin: 0;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 .nav-menu {
   display: flex;
@@ -143,19 +160,36 @@ function select(name) {
   display: flex;
   align-items: center;
   padding: 0.75rem 1rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   text-decoration: none;
-  color: #94a3b8;
-  transition: all 0.2s;
+  color: var(--text-secondary);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   gap: 0.75rem;
+  font-weight: 500;
+  position: relative;
 }
 .nav-item:hover {
-  background: #334155;
-  color: white;
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  transform: translateX(4px);
 }
 .nav-item.active {
-  background: #3b82f6;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
   color: white;
+  box-shadow: 0 4px 12px rgba(31, 139, 78, 0.3);
+  font-weight: 600;
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 60%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 .nav-icon {
   width: 20px;

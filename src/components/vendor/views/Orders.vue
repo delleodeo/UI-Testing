@@ -744,6 +744,17 @@ function handleKeyDown(event: KeyboardEvent) {
       </div>
     </transition>
 
+    <!-- Page Header -->
+    <header class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">
+          <ClipboardDocumentListIcon class="title-icon" />
+          Orders Management
+        </h1>
+        <p class="page-subtitle">Track and manage your customer orders</p>
+      </div>
+    </header>
+
     <div class="status-tabs enhanced-nav" role="tablist" aria-label="Order status filter" @keydown="onTabKey">
       <button 
         v-for="(key, index) in statusKeys" 
@@ -1011,20 +1022,21 @@ function handleKeyDown(event: KeyboardEvent) {
   position: absolute;
   top: -40px;
   left: 6px;
-  background: #1f2937;
-  color: white;
+  background: var(--surface);
+  color: var(--text-primary);
   padding: 8px 12px;
   text-decoration: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   z-index: 1000;
   font-size: 14px;
   font-weight: 600;
   transition: all 0.3s ease;
+  border: 1px solid var(--border-primary);
 }
 
 .skip-link:focus {
   top: 6px;
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -1034,16 +1046,78 @@ function handleKeyDown(event: KeyboardEvent) {
   overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
-  padding: clamp(1rem, 2vw, 2rem);
+  gap: 1.5rem;
+  padding: clamp(1rem, 3vw, 2rem);
   position: relative;
-  background: rgb(21, 30, 46);
-  background:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.04), transparent 60%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
-    rgb(21, 30, 46);
-  color: #e2e8f0;
+  background: transparent;
+  color: var(--text-primary);
   padding-bottom: 10rem;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   PAGE HEADER
+   ============================================ */
+.page-header {
+  padding: 0.5rem 0 1.5rem;
+  animation: slideDown 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
+}
+
+.title-icon {
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.page-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding-left: 2.75rem;
 }
 
 .status-tabs {
@@ -1051,47 +1125,58 @@ function handleKeyDown(event: KeyboardEvent) {
   flex-wrap: wrap;
   gap: .55rem;
   padding: .4rem;
-  background: rgba(255, 255, 255, .05);
+  background: var(--surface);
   backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, .12);
-  border-radius: 1rem;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--card-shadow);
 }
 
 .status-chip {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: .45rem;
-  padding: .55rem .85rem;
-  background: rgba(255, 255, 255, 0.05);
-  color: #cbd5e1;
-  border: 1px solid transparent;
-  border-radius: 2rem;
-  font-size: .8rem;
-  font-weight: 600;
-  letter-spacing: .4px;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 2px solid var(--border-primary);
+  border-radius: 50px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  transition: background .25s, color .25s, transform .25s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .status-chip:hover {
-  background: rgba(255, 255, 255, 0.09);
+  background: var(--surface-hover);
+  border-color: #1f8b4e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(31, 139, 78, 0.15);
 }
 
 .status-chip.active {
-  background: #fff;
-  color: rgb(21, 30, 46);
-  box-shadow: 0 4px 14px -4px rgba(0, 0, 0, .4);
+  background: linear-gradient(135deg, #1f8b4e 0%, #26a65b 100%);
+  color: white;
+  border-color: #1f8b4e;
+  box-shadow: 0 4px 12px rgba(31, 139, 78, 0.3);
+  transform: translateY(-2px);
 }
 
 .status-chip .count {
   font-size: .65rem;
-  background: currentColor;
-  color: #fff;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   padding: 2px 7px;
-  border-radius: 1rem;
+  border-radius: var(--radius-full);
   font-weight: 700;
   line-height: 1;
+}
+
+.status-chip.active .count {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 .controls {
@@ -1107,17 +1192,23 @@ function handleKeyDown(event: KeyboardEvent) {
   display: flex;
   align-items: center;
   gap: .55rem;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, .18);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   padding: .65rem .85rem;
-  border-radius: .9rem;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.search-box:focus-within {
+  border-color: var(--input-border-focus);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .search-box .icon {
   width: 18px;
   height: 18px;
   stroke-width: 2;
-  color: #94a3b8;
+  color: var(--text-tertiary);
 }
 
 .search-box input {
@@ -1125,13 +1216,13 @@ function handleKeyDown(event: KeyboardEvent) {
   background: transparent;
   border: none;
   outline: none;
-  color: #f1f5f9;
+  color: var(--text-primary);
   font: inherit;
   font-size: .88rem;
 }
 
 .search-box input::placeholder {
-  color: #64748b;
+  color: var(--text-tertiary);
 }
 
 .right-actions {
@@ -1142,13 +1233,14 @@ function handleKeyDown(event: KeyboardEvent) {
 
 .filters-panel {
   padding: .9rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, .12);
-  border-radius: .9rem;
+  background: var(--surface);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
   font-size: .75rem;
   display: flex;
   flex-direction: column;
   gap: .75rem;
+  box-shadow: var(--card-shadow);
 }
 
 .filters-grid {
@@ -1168,24 +1260,26 @@ function handleKeyDown(event: KeyboardEvent) {
   text-transform: uppercase;
   letter-spacing: .5px;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--text-tertiary);
 }
 
 .filter-group input,
 .filter-group select {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   padding: .4rem .5rem;
-  border-radius: .5rem;
+  border-radius: var(--radius-sm);
   font-size: .65rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-family: inherit;
   outline: none;
+  transition: border-color 0.2s ease;
 }
 
 .filter-group input:focus,
 .filter-group select:focus {
-  border-color: rgba(255, 255, 255, 0.38);
+  border-color: var(--input-border-focus);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .filters-actions {
@@ -1209,7 +1303,7 @@ function handleKeyDown(event: KeyboardEvent) {
   gap: .7rem;
   align-items: center;
   letter-spacing: .5px;
-  color: #94a3b8;
+  color: var(--text-tertiary);
   text-transform: uppercase;
   font-weight: 600;
 }
@@ -1227,8 +1321,8 @@ function handleKeyDown(event: KeyboardEvent) {
 
 .loading-skeleton {
   height: 230px;
-  border-radius: 1rem;
-  background: linear-gradient(110deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.09) 35%, rgba(255, 255, 255, 0.05) 55%);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(110deg, var(--bg-secondary) 25%, var(--surface-hover) 35%, var(--bg-secondary) 55%);
   background-size: 200% 100%;
   animation: shimmer 1.5s linear infinite;
 }
@@ -1242,25 +1336,41 @@ function handleKeyDown(event: KeyboardEvent) {
 .order-card {
   display: flex;
   flex-direction: column;
-  gap: .55rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 1rem;
-  padding: 1rem .95rem 1.1rem;
+  gap: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  padding: 1.25rem;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(6px);
-  transition: border-color .35s, transform .25s, box-shadow .35s;
+  box-shadow: 0 4px 16px rgba(31, 139, 78, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.order-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1f8b4e 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .order-card:hover {
-  border-color: rgba(255, 255, 255, 0.28);
+  border-color: rgba(31, 139, 78, 0.3);
   transform: translateY(-4px);
-  box-shadow: 0 10px 28px -6px rgba(0, 0, 0, .55);
+  box-shadow: 0 8px 24px rgba(31, 139, 78, 0.15);
+}
+
+.order-card:hover::before {
+  opacity: 1;
 }
 
 .order-card.updating {
-  opacity: .55;
+  opacity: 0.55;
   pointer-events: none;
 }
 
@@ -1275,14 +1385,16 @@ function handleKeyDown(event: KeyboardEvent) {
   font-size: .95rem;
   font-weight: 700;
   letter-spacing: .5px;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .card-head .created {
   margin: .25rem 0 0;
   font-size: .65rem;
-  color: #94a3b8;
+  color: var(--text-tertiary);
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   letter-spacing: .4px;
 }
 
@@ -1306,7 +1418,7 @@ function handleKeyDown(event: KeyboardEvent) {
   justify-content: space-between;
   font-size: .7rem;
   gap: .75rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
   line-height: 1.25;
 }
 
@@ -1317,7 +1429,7 @@ function handleKeyDown(event: KeyboardEvent) {
 .info-line .lbl {
   font-weight: 600;
   font-size: .65rem;
-  color: #94a3b8;
+  color: var(--text-tertiary);
   letter-spacing: .4px;
   text-transform: uppercase;
 }
@@ -1333,7 +1445,7 @@ function handleKeyDown(event: KeyboardEvent) {
 
 .info-line .val.strong {
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .mono {
@@ -1347,40 +1459,60 @@ function handleKeyDown(event: KeyboardEvent) {
   text-transform: uppercase;
   letter-spacing: .5px;
   padding: 3px 6px;
-  border-radius: .5rem;
-  background: #475569;
-  color: #e2e8f0;
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
 }
 
 .pay-badge.paid {
-  background: #0d9488;
+  background: var(--color-success);
+  color: white;
+  border-color: var(--color-success);
+  box-shadow: 0 0 0 2px var(--color-success-light);
 }
 
 .pay-badge.pending {
-  background: #b45309;
+  background: var(--color-warning);
+  color: white;
+  border-color: var(--color-warning);
+  box-shadow: 0 0 0 2px var(--color-warning-light);
 }
 
 .pay-badge.refunded {
-  background: #0369a1;
+  background: var(--color-info);
+  color: white;
+  border-color: var(--color-info);
+  box-shadow: 0 0 0 2px var(--color-info-light);
 }
 
 .pay-badge.failed {
-  background: #991b1b;
+  background: var(--color-danger);
+  color: white;
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 2px var(--color-danger-light);
 }
 
 .expand-btn {
   margin-top: .25rem;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   padding: .55rem .7rem;
-  border-radius: .75rem;
+  border-radius: var(--radius-md);
   font: inherit;
   font-size: .65rem;
   letter-spacing: .6px;
   text-transform: uppercase;
   font-weight: 600;
   cursor: pointer;
-  color: #cbd5e1;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.expand-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--color-primary);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: .5rem;
@@ -1434,12 +1566,13 @@ function handleKeyDown(event: KeyboardEvent) {
   font-size: .7rem;
   font-weight: 600;
   letter-spacing: .25px;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .it-label{
   font-size: .5rem;
-  color: rgb(143, 143, 143);
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .it-sub {
@@ -1448,24 +1581,24 @@ function handleKeyDown(event: KeyboardEvent) {
 }
 
 .muted {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .it-total {
   font-size: .65rem;
   font-weight: 600;
   white-space: nowrap;
-  color: #f1f5f9;
+  color: var(--text-primary);
 }
 
 .ship-block {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   padding: .55rem .7rem .65rem;
   border-radius: .7rem;
   font-size: .6rem;
   line-height: 1.3;
-  color: #cbd5e1;
+  color: var(--text-primary);
   letter-spacing: .3px;
 }
 
@@ -1475,7 +1608,7 @@ function handleKeyDown(event: KeyboardEvent) {
   font-weight: 600;
   font-size: .55rem;
   letter-spacing: .6px;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .ship-addr {
@@ -1490,33 +1623,35 @@ function handleKeyDown(event: KeyboardEvent) {
 }
 
 .btn {
-  --btn-bg: #fff;
-  --btn-fg: rgb(21, 30, 46);
+  --btn-bg: linear-gradient(135deg, #1f8b4e 0%, #26a65b 100%);
+  --btn-fg: white;
   display: inline-flex;
   align-items: center;
-  gap: .35rem;
+  justify-content: center;
+  gap: 0.5rem;
   border: none;
   background: var(--btn-bg);
   color: var(--btn-fg);
   font: inherit;
-  font-weight: 600;
-  padding: .55rem .85rem;
-  border-radius: .6rem;
-  font-size: .65rem;
-  letter-spacing: .6px;
+  font-weight: 700;
+  padding: 0.625rem 1rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
   cursor: pointer;
   position: relative;
-  transition: background .3s, transform .25s, box-shadow .3s;
-  box-shadow: 0 4px 14px -6px rgba(0, 0, 0, .4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(31, 139, 78, 0.25);
 }
 
 .btn:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 28px -8px rgba(0, 0, 0, .65);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(31, 139, 78, 0.35);
+  filter: brightness(1.1);
 }
 
 .btn:active:not(:disabled) {
-  transform: translateY(-1px);
+  transform: translateY(0);
 }
 
 .btn:disabled {
@@ -1526,39 +1661,40 @@ function handleKeyDown(event: KeyboardEvent) {
 
 .btn.outline {
   background: transparent;
-  color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
   box-shadow: none;
 }
 
 .btn.outline:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--bg-secondary);
+  border-color: var(--color-primary);
 }
 
 .btn.ghost {
-  background: rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   box-shadow: none;
 }
 
 .btn.ghost:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--bg-tertiary);
 }
 
 .btn.danger {
-  --btn-bg: #dc2626;
-  --btn-fg: #fff;
+  --btn-bg: var(--color-danger);
+  --btn-fg: var(--text-inverse);
 }
 
 .btn.danger.outline {
   background: transparent;
-  color: #fca5a5;
-  border: 1px solid #dc2626;
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
 }
 
 .btn.danger.outline:hover {
-  background: #dc2626;
-  color: #fff;
+  background: var(--color-danger);
+  color: var(--text-inverse);
 }
 
 .btn.tiny {
@@ -1591,13 +1727,13 @@ function handleKeyDown(event: KeyboardEvent) {
   grid-column: 1 / -1;
   text-align: center;
   padding: 3rem 1rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px dashed rgba(255, 255, 255, 0.25);
+  background: var(--bg-secondary);
+  border: 1px dashed var(--border-primary);
   border-radius: 1rem;
   display: flex;
   flex-direction: column;
   gap: .85rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: .85rem;
   letter-spacing: .5px;
 }
@@ -1608,6 +1744,7 @@ function handleKeyDown(event: KeyboardEvent) {
   stroke-width: 1.5;
   margin: 0 auto;
   opacity: .8;
+  color: var(--text-muted);
 }
 
 .pagination {
@@ -1618,7 +1755,7 @@ function handleKeyDown(event: KeyboardEvent) {
   margin-top: .5rem;
   flex-wrap: wrap;
   font-size: .65rem;
-  color: #cbd5e1;
+  color: var(--text-secondary);
   letter-spacing: .4px;
 }
 
@@ -1642,10 +1779,10 @@ function handleKeyDown(event: KeyboardEvent) {
 .agreement-modal-container {
   width: 100%;
   max-width: 500px;
-  background: rgba(30, 41, 59, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--surface);
+  border: 1px solid var(--border-primary);
   border-radius: 1rem;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-xl);
   display: flex;
   flex-direction: column;
   max-height: 80vh;
@@ -1656,20 +1793,53 @@ function handleKeyDown(event: KeyboardEvent) {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+}
+
+.chat-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .agreement-modal-header h3 {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #f1f5f9;
+  color: var(--text-primary);
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+}
+
+.status-indicator {
+  font-size: 0.6rem;
+  line-height: 1;
+}
+
+.status-indicator.connected {
+  color: var(--color-success);
+}
+
+.status-indicator.disconnected {
+  color: var(--color-warning);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.status-text {
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .modal-close-btn {
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--text-tertiary);
   font-size: 1.75rem;
   line-height: 1;
   cursor: pointer;
@@ -1677,7 +1847,7 @@ function handleKeyDown(event: KeyboardEvent) {
 }
 
 .modal-close-btn:hover {
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .chat-history {
@@ -1688,6 +1858,7 @@ function handleKeyDown(event: KeyboardEvent) {
   flex-direction: column;
   gap: 0.75rem;
   scroll-behavior: smooth;
+  background: var(--bg-primary);
 }
 
 .message-bubble {
@@ -1714,24 +1885,25 @@ function handleKeyDown(event: KeyboardEvent) {
 }
 
 .message-bubble.customer {
-  background: rgba(255, 255, 255, 0.12);
-  color: #e2e8f0;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   border-bottom-left-radius: 0.25rem;
   align-self: flex-start;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-primary);
 }
 
 .message-bubble.customer.initial {
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: var(--color-info-light);
+  border: 1px solid var(--color-info);
+  color: var(--text-primary);
 }
 
 .message-bubble.vendor {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  color: #ffffff;
   border-bottom-right-radius: 0.25rem;
   align-self: flex-end;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-primary);
 }
 
 .msg-text {
@@ -1739,13 +1911,23 @@ function handleKeyDown(event: KeyboardEvent) {
   white-space: pre-wrap;
   word-wrap: break-word;
   font-size: 0.85rem;
+  color: inherit;
 }
 
 .msg-meta {
   font-size: 0.65rem;
   margin-top: 0.4rem;
-  opacity: 0.75;
   font-weight: 500;
+  color: inherit;
+}
+
+.message-bubble.vendor .msg-text,
+.message-bubble.vendor .msg-meta {
+  color: #ffffff;
+}
+
+.message-bubble.customer .msg-meta {
+  opacity: 0.85;
 }
 
 .message-bubble.customer .msg-meta {
@@ -1764,32 +1946,34 @@ function handleKeyDown(event: KeyboardEvent) {
   gap: 1rem;
   padding: 2rem;
   text-align: center;
-  color: #64748b;
+  color: var(--text-secondary);
   flex-grow: 1;
 }
 
 .empty-icon {
   width: 48px;
   height: 48px;
-  opacity: 0.5;
+  opacity: 0.6;
+  color: var(--text-muted);
   transition: all 0.3s ease;
 }
 
 .chat-input-area {
   display: flex;
   padding: 1rem 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid var(--border-primary);
   gap: 0.75rem;
   align-items: flex-end;
+  background: var(--bg-secondary);
 }
 
 .chat-input-area textarea {
   flex: 1;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 1rem;
   padding: 0.75rem 1rem;
-  color: #f1f5f9;
+  color: var(--text-primary);
   font-family: inherit;
   font-size: 0.85rem;
   resize: none;
@@ -1800,9 +1984,13 @@ function handleKeyDown(event: KeyboardEvent) {
   line-height: 1.4;
 }
 
+.chat-input-area textarea::placeholder {
+  color: var(--text-muted);
+}
+
 .chat-input-area textarea:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  border-color: var(--input-border-focus);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
 }
 
 .chat-input-area textarea:disabled {
@@ -1815,21 +2003,21 @@ function handleKeyDown(event: KeyboardEvent) {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  color: var(--text-inverse);
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(31, 139, 78, 0.3);
 }
 
 .btn-send:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, var(--color-primary-hover), var(--color-primary-active));
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 6px 16px rgba(31, 139, 78, 0.4);
 }
 
 .btn-send:active:not(:disabled) {
@@ -1837,10 +2025,11 @@ function handleKeyDown(event: KeyboardEvent) {
 }
 
 .btn-send:disabled {
-  background: #475569;
+  background: var(--text-muted);
   cursor: not-allowed;
   box-shadow: none;
   transform: none;
+  opacity: 0.5;
 }
 
 /* Enhanced Message Icon Styles */
@@ -1991,7 +2180,7 @@ function handleKeyDown(event: KeyboardEvent) {
 .enhanced-empty-chat .empty-icon {
   width: 64px;
   height: 64px;
-  color: #10b981;
+  color: var(--color-success);
   opacity: 0.8;
   z-index: 2;
   position: relative;
@@ -2001,20 +2190,20 @@ function handleKeyDown(event: KeyboardEvent) {
 .icon-glow {
   position: absolute;
   inset: -8px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(31, 139, 78, 0.2) 0%, transparent 70%);
   border-radius: 50%;
   animation: glow-pulse 2s ease-in-out infinite alternate;
 }
 
 .empty-content h3 {
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 18px;
   font-weight: 600;
   margin: 0 0 8px 0;
 }
 
 .empty-content p {
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 14px;
   margin: 0;
   max-width: 280px;
@@ -2209,11 +2398,40 @@ function handleKeyDown(event: KeyboardEvent) {
 
 /* Mobile Navigation Enhancements */
 @media (max-width: 768px) {
+  /* Page Container */
+  .order-cards-page {
+    padding: 0.75rem;
+    padding-bottom: 8rem;
+    gap: 1rem;
+    overflow-x: hidden;
+  }
+
+  /* Page Header */
+  .page-header {
+    padding: 0.25rem 0 1rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+    gap: 0.5rem;
+  }
+
+  .title-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.8rem;
+    padding-left: 2rem;
+  }
+  
+  /* Navigation Tabs */
   .enhanced-nav {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    scrollbar-color: rgba(31, 139, 78, 0.3) transparent;
   }
   
   .enhanced-nav::-webkit-scrollbar {
@@ -2221,12 +2439,12 @@ function handleKeyDown(event: KeyboardEvent) {
   }
   
   .enhanced-nav::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-secondary);
     border-radius: 2px;
   }
   
   .enhanced-nav::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--color-primary);
     border-radius: 2px;
   }
   
@@ -2234,35 +2452,14 @@ function handleKeyDown(event: KeyboardEvent) {
     flex-wrap: nowrap;
     min-width: max-content;
     padding: 0.5rem;
+    gap: 0.4rem;
   }
   
   .status-chip {
     flex-shrink: 0;
     white-space: nowrap;
-  }
-  
-  .enhanced-pagination {
-    gap: 0.75rem;
-    font-size: 0.7rem;
-  }
-  
-  .pagination-btn {
-    min-width: 70px;
-    padding: 0.4rem 0.6rem;
-  }
-  
-  .pagination-info {
-    padding: 0.4rem 0.8rem;
-    min-width: 100px;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-  
-  .page-icon {
-    display: none;
-  }
-  
-  .status-chip {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
     gap: 0.375rem;
   }
   
@@ -2271,10 +2468,241 @@ function handleKeyDown(event: KeyboardEvent) {
     height: 14px;
   }
   
+  /* Controls & Search */
+  .controls {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .search-box {
+    width: 100%;
+  }
+  
+  .right-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  /* Order Cards */
+  .cards-grid {
+    gap: 0.875rem;
+  }
+  
+  .order-card {
+    padding: 0.875rem;
+    border-radius: 12px;
+    gap: 0.75rem;
+  }
+  
+  .card-head {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .card-head .left {
+    width: 100%;
+  }
+  
+  .card-head .oid {
+    font-size: 0.85rem;
+    word-break: break-all;
+  }
+  
+  .card-head .created {
+    font-size: 0.6rem;
+  }
+  
+  .status-pill {
+    align-self: flex-start;
+    font-size: 0.5rem;
+    padding: 0.3rem 0.5rem;
+  }
+  
+  /* Info Lines */
+  .info-line {
+    font-size: 0.65rem;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .info-line .lbl {
+    font-size: 0.6rem;
+    min-width: 80px;
+  }
+  
+  .info-line .val {
+    font-size: 0.65rem;
+    word-break: break-word;
+  }
+  
+  .mono {
+    font-size: 0.6rem;
+    word-break: break-all;
+  }
+  
+  .pay-badge {
+    font-size: 0.5rem;
+    padding: 2px 5px;
+  }
+  
+  /* Items List */
+  .items-list {
+    gap: 0.625rem;
+  }
+  
+  .item-row {
+    gap: 0.625rem;
+  }
+  
+  .thumb {
+    width: 60px;
+    height: 45px;
+    min-width: 60px;
+  }
+  
+  .it-name, .it-label {
+    font-size: 0.65rem;
+  }
+  
+  .it-label {
+    font-size: 0.5rem;
+  }
+  
+  .it-sub {
+    font-size: 0.55rem;
+  }
+  
+  .it-total {
+    font-size: 0.6rem;
+  }
+  
+  /* Shipping Block */
+  .ship-block {
+    padding: 0.5rem;
+    font-size: 0.55rem;
+  }
+  
+  .ship-title {
+    font-size: 0.5rem;
+  }
+  
+  /* Buttons */
+  .actions {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .btn {
+    font-size: 0.6rem;
+    padding: 0.45rem 0.65rem;
+  }
+  
+  .btn.tiny {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.55rem;
+  }
+  
+  .icon.mini {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .expand-btn {
+    font-size: 0.6rem;
+    padding: 0.5rem;
+  }
+  
+  /* Pagination */
+  .enhanced-pagination {
+    gap: 0.5rem;
+    font-size: 0.65rem;
+    flex-wrap: wrap;
+  }
+  
+  .pagination-btn {
+    min-width: 60px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.65rem;
+  }
+  
+  .pagination-info {
+    padding: 0.4rem 0.8rem;
+    min-width: 100px;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.65rem;
+  }
+  
+  .page-icon {
+    display: none;
+  }
+  
+  /* Chat Button */
+  .btn-icon.chat-btn {
+    width: 28px;
+    height: 28px;
+  }
+  
   .btn-tooltip {
     display: none;
   }
   
+  /* Agreement Modal */
+  .agreement-modal-overlay {
+    padding: 0.5rem;
+  }
+  
+  .agreement-modal-container {
+    max-width: 100%;
+    max-height: 90vh;
+  }
+  
+  .agreement-modal-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .agreement-modal-header h3 {
+    font-size: 0.9rem;
+  }
+  
+  .connection-status {
+    font-size: 0.7rem;
+  }
+  
+  .chat-history {
+    padding: 0.75rem;
+  }
+  
+  .message-bubble {
+    max-width: 90%;
+    padding: 0.625rem 0.875rem;
+  }
+  
+  .msg-text {
+    font-size: 0.8rem;
+  }
+  
+  .msg-meta {
+    font-size: 0.6rem;
+  }
+  
+  .chat-input-area {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+  
+  .chat-input-area textarea {
+    font-size: 0.8rem;
+    padding: 0.625rem 0.875rem;
+    min-height: 40px;
+  }
+  
+  .btn-send {
+    width: 40px;
+    height: 40px;
+  }
+  
+  /* Enhanced Empty Chat */
   .enhanced-empty-chat {
     padding: 24px 16px;
   }
@@ -2290,6 +2718,64 @@ function handleKeyDown(event: KeyboardEvent) {
   
   .empty-content p {
     font-size: 13px;
+  }
+  
+  /* Empty State */
+  .empty-state {
+    padding: 2rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .empty-state .icon.large {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Extra Small Screens */
+@media (max-width: 480px) {
+  .order-cards-page {
+    padding: 0.5rem;
+  }
+
+  .page-header {
+    padding: 0.25rem 0 0.75rem;
+  }
+
+  .page-title {
+    font-size: 1.25rem;
+    gap: 0.4rem;
+  }
+
+  .title-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.75rem;
+    padding-left: 1.65rem;
+  }
+  
+  .status-chip {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.7rem;
+  }
+  
+  .order-card {
+    padding: 0.75rem;
+  }
+  
+  .card-head .oid {
+    font-size: 0.8rem;
+  }
+  
+  .info-line {
+    font-size: 0.6rem;
+  }
+  
+  .info-line .lbl {
+    min-width: 70px;
   }
 }
 

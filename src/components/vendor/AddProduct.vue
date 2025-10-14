@@ -836,7 +836,7 @@ section {
   margin: 0 auto;
   padding: 24px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: var(--bg-primary);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -873,25 +873,31 @@ section {
 
 .form-title {
   font-size: 2.5rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-weight: 800;
+  color: var(--text-primary);
   margin: 0 0 8px 0;
   line-height: 1.2;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .form-subtitle {
   font-size: 1.125rem;
-  color: #64748b;
+  color: var(--text-secondary);
   margin: 0;
   line-height: 1.5;
+  font-weight: 500;
 }
 
 .product-form {
-  background: #ffffff;
+  background: var(--surface);
   border-radius: 20px;
   padding: 40px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border-primary);
   width: 100%;
   animation: fadeIn .3s ease-out;
 }
@@ -933,33 +939,37 @@ section {
 }
 
 .field-label {
-  font-weight: 600;
-  color: #374151;
+  font-weight: 700;
+  color: var(--text-primary);
   font-size: 0.875rem;
   text-transform: uppercase;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.05em;
 }
 
 .field-input,
 .field-textarea {
   padding: 16px;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--input-border);
   border-radius: 12px;
   font-size: 1rem;
   transition: all 0.2s ease;
-  background: #ffffff;
-  color: #1f2937;
+  background: var(--input-bg);
+  color: var(--text-primary);
   line-height: 1.5;
   animation: fadeIn .4s ease-out;
   width: 100%;
+}
 
+.field-input::placeholder,
+.field-textarea::placeholder {
+  color: var(--input-placeholder);
 }
 
 .field-input:focus,
 .field-textarea:focus {
   outline: none;
-  border-color: green;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--input-border-focus);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
   transform: translateY(-1px);
 }
 
@@ -997,7 +1007,7 @@ section {
 .checkbox-label {
   flex: 1;
   font-weight: 500;
-  color: #374151;
+  color: var(--text-primary);
   cursor: pointer;
   margin: 0;
   line-height: 1.5;
@@ -1006,7 +1016,7 @@ section {
 .checkbox-description {
   display: block;
   font-weight: 400;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 0.875rem;
   margin-top: 4px;
 }
@@ -1023,13 +1033,13 @@ section {
 .category-pill {
   position: relative;
   padding: 12px 20px;
-  background: #ffffff;
-  border: 2px solid #e5e7eb;
+  background: var(--surface);
+  border: 2px solid var(--border-primary);
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 500;
-  color: #374151;
+  color: var(--text-primary);
   text-align: left;
   display: flex;
   align-items: center;
@@ -1039,7 +1049,8 @@ section {
 
 .category-pill:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 4px 12px rgba(31, 139, 78, 0.15);
+  border-color: var(--color-primary);
 }
 
 .category-pill:disabled {
@@ -1048,24 +1059,25 @@ section {
 }
 
 .category-active {
-  background: var(--primary-color);
-  border-color: green;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  border-color: var(--color-primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(31, 139, 78, 0.3);
+  font-weight: 600;
 }
 
 
 .selected-categories {
   margin-top: 24px;
   padding: 20px;
-  background: #f0fff7b2;
+  background: var(--color-primary-light);
   border-radius: 12px;
-  border: 2px solid #26772d;
+  border: 2px solid var(--color-primary);
 }
 
 .selected-label {
   font-weight: 600;
-  color: #0c4a6e;
+  color: var(--text-primary);
   margin: 0 0 12px 0;
 }
 
@@ -1302,7 +1314,7 @@ section {
 .submit-btn {
   width: 100%;
   padding: 20px 32px;
-  background: linear-gradient(135deg, #1eb14a 0%, #4b9739 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   color: white;
   font-weight: 700;
   font-size: 1.125rem;
@@ -1310,7 +1322,7 @@ section {
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 8px 15px -3px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 8px 15px -3px rgba(31, 139, 78, 0.4);
   position: relative;
   overflow: hidden;
   min-width: 200px;
@@ -1354,15 +1366,16 @@ section {
 .cropper {
   position: fixed;
   top: 0;
-
+  left: 0;
+  right: 0;
   bottom: 0;
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(36, 36, 36, 0.801);
-  width: 1200px !important;
-
+  background: var(--modal-backdrop);
+  backdrop-filter: blur(8px);
+  width: 100vw !important;
 }
 
 .cropper-overlay {
@@ -1375,13 +1388,14 @@ section {
 
 .cropper-modal-content {
   position: relative;
-  background: white;
+  background: var(--surface);
   border-radius: 16px;
   padding: 24px;
   max-width: 90vw;
   max-height: 90vh;
   overflow: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border-primary);
 }
 
 .cropper-header {
@@ -1391,20 +1405,20 @@ section {
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .cropper-title {
   font-size: 1.5rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 700;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .close-btn {
   width: 32px;
   height: 32px;
-  background: #f3f4f6;
+  background: var(--bg-secondary);
   border: none;
   border-radius: 50%;
   cursor: pointer;
@@ -1417,8 +1431,8 @@ section {
 }
 
 .close-btn:hover {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--surface-hover);
+  color: var(--text-primary);
 }
 
 /* Image Preview Modal Styles */
@@ -1435,7 +1449,7 @@ section {
 
 .preview-description {
   animation: fadeIn 0.2s ease-out;
-  color: #6b7280;
+  color: var(--text-secondary);
   text-align: center;
   margin: 0;
   font-size: 1rem;
@@ -1450,9 +1464,9 @@ section {
   max-height: 400px;
   overflow-y: auto;
   padding: 16px;
-  border: 2px solid #f1f5f9;
+  border: 2px solid var(--border-primary);
   border-radius: 12px;
-  background: #fafafa;
+  background: var(--bg-secondary);
 }
 
 .preview-image-item {
