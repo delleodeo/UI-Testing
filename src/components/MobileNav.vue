@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useTheme } from '../composables/useTheme'
 
 import {
   HomeIcon,
@@ -17,6 +18,8 @@ import {
   ShoppingBagIcon as ShoppingBagIconSolid,
   ShoppingCartIcon as ShoppingCartIconSolid
 } from '@heroicons/vue/24/solid'
+
+const { theme } = useTheme()
 
 interface NavItem {
   id: string
@@ -92,19 +95,22 @@ const navigateTo = (itemId: string, path: string) => {
   padding: 0;
   background: transparent;
   pointer-events: none;
+  transition: all var(--transition-fast);
 }
 
 .nav-container {
-  background-color: var(--background-color, #fcfaf5);
+  background-color: var(--surface);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(218, 213, 213, 0.4);
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: space-around;
   align-items: center;
   pointer-events: all;
   width: 100%;
   padding: 0.5rem 10px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  transition: all var(--transition-fast);
 }
 
 .nav-item {
@@ -116,24 +122,33 @@ const navigateTo = (itemId: string, path: string) => {
   border: none;
   cursor: pointer;
   border-radius: 14px;
-  transition: all 0.3s ease;
+  transition: all var(--transition-fast);
   flex: 1;
   justify-content: center;
   padding: 0.5rem 0.25rem;
 }
 
+.nav-item:hover {
+  background-color: var(--surface-hover);
+}
+
 .nav-icon {
   width: 24px;
   height: 24px;
-  color: rgba(0, 0, 0, 0.6);
-  transition: all 0.2s ease;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.nav-item:hover .nav-icon {
+  color: var(--text-primary);
 }
 
 .nav-item.active {
-  background-color: var(--primary-color-2, #094a25);
+  background-color: #1f8b4e;
   transform: translateY(-2px);
-  border-radius: .8rem;
+  border-radius: 0.8rem;
   padding: 0.6rem 0.7rem;
+  box-shadow: 0 4px 12px rgba(31, 139, 78, 0.25);
 }
 
 .nav-item.active .nav-icon {
@@ -142,19 +157,58 @@ const navigateTo = (itemId: string, path: string) => {
 
 .nav-label {
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
   display: none;
   color: white;
+  letter-spacing: 0.01em;
 }
 
 .nav-item.active .nav-label {
   display: block;
 }
 
+/* Smooth theme transitions */
+.nav-container,
+.nav-item,
+.nav-icon {
+  transition: all var(--transition-fast);
+}
+
 /* Hide nav bar on large screen */
 @media (min-width: 841px) {
   .mobile-nav {
     display: none;
+  }
+}
+
+/* Enhanced mobile experience */
+@media (max-width: 480px) {
+  .nav-container {
+    padding: 0.4rem 8px;
+  }
+
+  .nav-item {
+    padding: 0.45rem 0.2rem;
+  }
+
+  .nav-item.active {
+    padding: 0.55rem 0.6rem;
+  }
+
+  .nav-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .nav-label {
+    font-size: 0.8rem;
+  }
+}
+
+/* Safe area support for devices with notches */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .nav-container {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
   }
 }
 </style>
