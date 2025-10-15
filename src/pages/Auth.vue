@@ -2,8 +2,10 @@
 import { ref, reactive, computed, nextTick } from "vue";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/vue/24/outline";
 import { useAuthStore } from "../stores/authStores";
+import { useTheme } from "../composables/useTheme";
 
 const authStore = useAuthStore();
+const { isDark } = useTheme();
 const view = ref("login");
 const statusMsg = ref("");
 
@@ -306,12 +308,13 @@ async function handleFacebook() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgb(255, 251, 245);
+  background: var(--bg-primary);
   min-height: 100dvh;
-  color: #fff;
+  color: var(--text-primary);
   font-family: Inter, sans-serif;
   padding: 1rem;
   flex-direction: column;
+  transition: all var(--transition-fast);
 }
 
 .logo {
@@ -338,7 +341,7 @@ async function handleFacebook() {
 }
 
 .auth-card {
-  background: rgb(255, 255, 249);
+  background: var(--surface);
   padding: 2rem;
   border-radius: 16px;
   max-width: 480px;
@@ -346,7 +349,9 @@ async function handleFacebook() {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 16px var(--shadow-color);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
 }
 
 .auth-tabs {
@@ -362,15 +367,18 @@ async function handleFacebook() {
   padding: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  color: black;
+  color: var(--text-primary);
   border-radius: 12px;
   transition: all 0.3s ease;
 }
 
+.auth-tab:hover {
+  background: var(--surface-hover);
+}
+
 .auth-tab.active {
   background: var(--primary-color);
-  color: #fff;
-
+  color: var(--text-inverse);
 }
 
 .auth-form {
@@ -390,18 +398,19 @@ select {
   padding: 1rem 0.75rem;
   font-size: 1rem;
   width: 100%;
-  background: rgba(255, 255, 255, 0.08);
-  border: 2px solid rgba(173, 173, 173, 0.959);
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
   border-radius: 10px;
-  color: #000000;
+  color: var(--text-primary);
   box-sizing: border-box;
-  transition: border 0.2s;
+  transition: all var(--transition-fast);
 }
 
 .floating-label input:focus,
 select:focus {
   border-color: var(--primary-color);
   outline: none;
+  background: var(--surface);
 }
 
 .login-error {
@@ -414,7 +423,7 @@ select:focus {
   position: absolute;
   left: 0.75rem;
   top: 1rem;
-  color: #9ca3af;
+  color: var(--text-secondary);
   transition: 0.2s ease all;
   pointer-events: none;
 }
@@ -424,16 +433,17 @@ select:focus {
   top: -0.6rem;
   left: 0.5rem;
   font-size: 0.75rem;
-  color: black;
-  background: white;
+  color: var(--primary-color);
+  background: var(--surface);
   padding: 0 0.25rem;
   border-radius: 4px;
 }
 
 .select-label {
   margin-bottom: 0.4rem;
-  color: #494949;
+  color: var(--text-primary);
   font-weight: 500;
+  transition: color var(--transition-fast);
 }
 
 

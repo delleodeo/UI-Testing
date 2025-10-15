@@ -9,8 +9,10 @@ import {
     AdjustmentsHorizontalIcon,
 } from "@heroicons/vue/24/outline";
 import { CategorySelectedEvent } from "../types/product";
+import { useTheme } from "../composables/useTheme";
 
 const emits = defineEmits(['scrollTop'])
+const { isDark } = useTheme();
 const openDropdown = ref<string | null>(null);
 const selectedMunicipality = ref("By Municipality");
 const selectedProduct = ref("By Product");
@@ -184,8 +186,9 @@ onBeforeUnmount(() => {
 <style scoped>
 .category-filter-dropdown {
     width: 100%;
-    background-color: var(--background-color);
+    background-color: var(--bg-primary);
     z-index: 66;
+    transition: background-color var(--transition-fast);
 }
 
 
@@ -217,20 +220,21 @@ onBeforeUnmount(() => {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background-color: var(--accent-color);
-    color: #111827;
-    border: 1px solid rgba(128, 128, 128, 0.452);
+    background-color: var(--surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
     border-radius: 0.5rem;
     padding: 10px 10px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-fast);
     min-width: 180px;
     max-width: 100%;
     font-size: 16px;
 }
 
 .dropdown-btn:hover {
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-small);
+    background-color: var(--surface-hover);
 }
 
 .dropdown-text {
@@ -261,10 +265,10 @@ onBeforeUnmount(() => {
     top: 110%;
     left: 0;
     right: 0;
-    background-color: white;
-    border: 1px solid #e5e7eb;
+    background-color: var(--surface);
+    border: 1px solid var(--border-color);
     border-radius: 0.5rem;
-    box-shadow: 0 4px 20px rgba(97, 95, 95, 0.4);
+    box-shadow: var(--shadow-medium);
     z-index: 20;
     list-style: none;
     padding: 0.5rem 3px;
@@ -273,18 +277,20 @@ onBeforeUnmount(() => {
     overflow: auto;
     scrollbar-width: thin;
     font-size: clamp(14px, 2vw, 16px);
-
+    transition: all var(--transition-fast);
 }
 
 .dropdown-menu li {
     padding: 10px 5px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
-    border-bottom: 1px solid rgba(218, 213, 213, 0.856);
+    transition: all var(--transition-fast);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
 }
 
 .dropdown-menu li:hover {
-    background-color: #f9fafb;
+    background-color: var(--surface-hover);
+    color: var(--primary-color);
 }
 
 @media (max-width: 640px) {

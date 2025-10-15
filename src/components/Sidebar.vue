@@ -2,6 +2,7 @@
 import { ref, defineEmits, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/authStores';
+import { useTheme } from '../composables/useTheme';
 import {
   HomeIcon,
   ChatBubbleLeftIcon,
@@ -16,6 +17,7 @@ const emit = defineEmits(['handleClick'])
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const { isDark } = useTheme();
 
 const handleCl = () => {
   emit('handleClick')
@@ -288,25 +290,27 @@ const confirmLogout = async () => {
   width: 100%;
   max-width: 18rem;
   min-width: 18rem;
-  background-color: var(--background-color);
+  background-color: var(--surface);
   border-radius: 0 0 1rem 1rem;
-  box-shadow: 0 10px 30px rgba(128, 128, 128, 0.548);
+  box-shadow: var(--shadow-large);
   padding: 1.5rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   z-index: 10;
   border-bottom: 5px solid var(--primary-color);
-
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
 }
 
 .sidebar-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--text-dark);
-  border-bottom: 2px solid #e5e7eb;
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border-color);
   padding-bottom: 0.5rem;
   margin-bottom: 1rem;
+  transition: all var(--transition-fast);
 }
 
 .sidebar-nav {
@@ -322,29 +326,28 @@ const confirmLogout = async () => {
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   font-size: 1rem;
-  color: var(--text-dark);
+  color: var(--text-primary);
   background-color: transparent;
   border: none;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-fast);
   text-align: left;
 }
 
 .sidebar-link:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: var(--surface-hover);
   transform: translateX(4px);
 }
 
 .sidebar-link.active {
   background-color: var(--primary-color);
-  color: var(--text-white);
+  color: white;
   font-weight: 600;
 }
 
 .sidebar-link.logout {
   margin-top: 1rem;
   color: #dc2626;
-  /* Tailwind red-600 */
 }
 
 .sidebar-link.logout:hover:not(:disabled) {
@@ -394,14 +397,16 @@ const confirmLogout = async () => {
 }
 
 .logout-modal {
-  background: white;
+  background: var(--surface);
   border-radius: 1rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-large);
   max-width: 400px;
   width: 90%;
   padding: 1.5rem;
   animation: scaleIn 0.2s ease;
   position: relative;
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
 }
 
 @keyframes scaleIn {
@@ -424,11 +429,12 @@ const confirmLogout = async () => {
   width: 4rem;
   height: 4rem;
   margin: 0 auto 1rem;
-  background: #fee2e2;
+  background: rgba(220, 38, 38, 0.1);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color var(--transition-fast);
 }
 
 .logout-icon {
@@ -440,15 +446,17 @@ const confirmLogout = async () => {
 .modal-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
   margin: 0 0 0.5rem 0;
+  transition: color var(--transition-fast);
 }
 
 .modal-message {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0;
   line-height: 1.5;
+  transition: color var(--transition-fast);
 }
 
 .modal-actions {
@@ -464,7 +472,7 @@ const confirmLogout = async () => {
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
   border: none;
   min-width: 80px;
   display: flex;
@@ -474,12 +482,13 @@ const confirmLogout = async () => {
 }
 
 .btn-cancel {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .btn-cancel:hover {
-  background: #e5e7eb;
+  background: var(--surface-hover);
 }
 
 .btn-confirm {

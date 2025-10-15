@@ -7,11 +7,13 @@ import type { Order, OrderItem, OrderStatus, PaymentMethod } from '../types/orde
 import { handleImageError } from '../utils/fallbackImage'
 import CustomerChatModal from '../components/CustomerChatModal.vue'
 import ConfirmationModal from '../components/ConfirmationModal.vue'
+import { useTheme } from '../composables/useTheme'
 
 const router = useRouter()
 
 const orderStore = useOrderStore()
 const orders = computed<Order[]>(() => orderStore.orders)
+const { isDark } = useTheme()
 
 // Chat modal state
 const showChatModal = ref(false)
@@ -498,22 +500,24 @@ const handleSearch = () => {
 .orders-wrapper {
   display: flex;
   flex-direction: column;
-  background: var(--backgorund-color);
-  color: var(--gray-900);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   line-height: 1.5;
   height: 100dvh;
   overflow: auto;
   padding-bottom: 4rem;
+  transition: all var(--transition-fast);
 }
 
 /* Page Header - Shopping Cart Style */
 .page-header {
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-color);
   padding: 1rem 1.5rem;
   position: sticky;
   top: 0;
   z-index: 20;
+  transition: all var(--transition-fast);
 }
 
 .header-content {
@@ -539,15 +543,15 @@ const handleSearch = () => {
   background: transparent;
   border: none;
   border-radius: 50%;
-  color: #059669;
+  color: var(--color-primary);
   cursor: pointer;
   transition: all 0.2s ease;
   padding: 0;
 }
 
 .back-button:hover {
-  background: #f0fdf4;
-  color: #047857;
+  background: var(--surface-hover);
+  color: var(--color-primary);
 }
 
 .back-button:active {
@@ -563,9 +567,10 @@ const handleSearch = () => {
 .page-title {
   font-size: 1.75rem;
   font-weight: 600;
-  color: #059669;
+  color: var(--color-primary);
   margin: 0;
   letter-spacing: -0.025em;
+  transition: color var(--transition-fast);
 }
 
 .header-right {
@@ -588,15 +593,16 @@ const handleSearch = () => {
 }
 
 .action-button.secondary {
-  background: white;
-  border-color: #d1d5db;
-  color: #6b7280;
+  background: var(--surface);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
 }
 
 .action-button.secondary:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
-  color: #4b5563;
+  background: var(--surface-hover);
+  border-color: var(--border-color);
+  color: var(--text-primary);
 }
 
 .action-button.primary {
@@ -612,8 +618,8 @@ const handleSearch = () => {
 
 /* Tab Navigation */
 .tab-nav {
-  background: white;
-  border-bottom: 1px solid var(--gray-200);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -623,6 +629,7 @@ const handleSearch = () => {
   width: 100dvw;
   justify-content: center;
   margin: 0 auto;
+  transition: all var(--transition-fast);
 }
 
 .tab-nav-inner {
@@ -647,7 +654,7 @@ const handleSearch = () => {
   font-weight: 500;
   font-size: 14px;
   cursor: pointer;
-  color: var(--gray-600);
+  color: var(--text-secondary);
   transition: all 0.2s ease;
   position: relative;
   white-space: nowrap;
@@ -657,13 +664,13 @@ const handleSearch = () => {
 
 .tab-button:hover {
   color: var(--primary-color);
-  background: var(--primary-50);
+  background: var(--surface-hover);
 }
 
 .tab-button.active {
   color: var(--primary-color);
   border-bottom-color: var(--primary-color);
-  background: var(--primary-50);
+  background: var(--surface-hover);
 }
 
 .tab-text {
@@ -717,16 +724,18 @@ const handleSearch = () => {
 .empty-title {
   font-size: 24px;
   font-weight: 600;
-  color: var(--gray-700);
+  color: var(--text-primary);
   margin: 0 0 var(--spacing-2) 0;
   line-height: 1.2;
+  transition: color var(--transition-fast);
 }
 
 .empty-description {
   font-size: 16px;
-  color: var(--gray-500);
+  color: var(--text-secondary);
   margin: 0;
   max-width: 400px;
+  transition: color var(--transition-fast);
 }
 
 /* Orders Grid */
@@ -751,13 +760,14 @@ const handleSearch = () => {
 
 /* Order Card */
 .order-card {
-  background: white;
+  background: var(--surface);
   border-radius: var(--border-radius-lg);
-  box-shadow: 0 0 3px rgb(170, 170, 170);
+  box-shadow: 0 0 3px var(--shadow-color);
   overflow: hidden;
   transition: all 0.2s ease;
   animation: slideIn 0.3s ease forwards;
   opacity: 0;
+  border: 1px solid var(--border-color);
 }
 
 @keyframes slideIn {
@@ -779,7 +789,8 @@ const handleSearch = () => {
 /* Order Header */
 .order-header {
   padding: var(--spacing-2) var(--spacing-3);
-  border-bottom: 1px solid var(--gray-100);
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color var(--transition-fast);
 }
 
 .store-info {
@@ -792,12 +803,12 @@ const handleSearch = () => {
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
-
-  color: black;
+  color: var(--text-primary);
   padding: 4px 8px;
   border-radius: 4px;
   font-size: clamp(1rem, 2vw, 1.5rem);
   font-weight: 600;
+  transition: color var(--transition-fast);
 }
 
 .store-icon {
@@ -848,8 +859,9 @@ const handleSearch = () => {
   display: flex;
   align-items: center;
   padding: var(--spacing-2) var(--spacing-3);
-  background: var(--gray-50);
-  border-bottom: 1px solid var(--gray-100);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
 }
 
 .delivery-icon {
@@ -865,13 +877,15 @@ const handleSearch = () => {
 .delivery-time {
   font-size: 14px;
   font-weight: 600;
-  color: var(--gray-900);
+  color: var(--text-primary);
   margin-bottom: 2px;
+  transition: color var(--transition-fast);
 }
 
 .delivery-message {
   font-size: 13px;
-  color: var(--gray-600);
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
 }
 
 .delivery-arrow {
@@ -899,11 +913,12 @@ const handleSearch = () => {
   height: 60px;
   border-radius: var(--border-radius);
   overflow: hidden;
-  background: var(--gray-100);
+  background: var(--bg-secondary);
   flex-shrink: 0;
-  box-shadow: 0 0 5px rgb(129, 129, 129);
+  box-shadow: 0 0 5px var(--shadow-color);
   display: flex;
   align-items: center;
+  transition: all var(--transition-fast);
 }
 
 .item-image img {
@@ -926,20 +941,23 @@ const handleSearch = () => {
 .item-name {
   font-size: 14px;
   font-weight: 500;
-  color: var(--gray-900);
+  color: var(--text-primary);
   margin: 0 0 4px 0;
   line-height: 1.3;
+  transition: color var(--transition-fast);
 }
 
 .item-variant {
   font-size: 13px;
-  color: var(--gray-600);
+  color: var(--text-secondary);
   margin: 0 0 4px 0;
+  transition: color var(--transition-fast);
 }
 
 .item-quantity {
   font-size: 13px;
-  color: var(--gray-600);
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
 }
 
 .item-price {
@@ -949,7 +967,8 @@ const handleSearch = () => {
 .price {
   font-size: 14px;
   font-weight: 600;
-  color: var(--gray-900);
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
 }
 
 /* Order Total */
@@ -958,20 +977,22 @@ const handleSearch = () => {
   justify-content: space-between;
   align-items: center;
   padding: 7px var(--spacing-3);
-  border-top: 1px solid var(--gray-100);
-  background: var(--gray-50);
-
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  transition: all var(--transition-fast);
 }
 
 .total-label {
   font-size: 14px;
-  color: var(--gray-600);
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
 }
 
 .total-amount {
   font-size: 16px;
   font-weight: 700;
-  color: var(--gray-900);
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
 }
 
 /* Action Buttons */
@@ -979,7 +1000,8 @@ const handleSearch = () => {
   display: flex;
   gap: var(--spacing-2);
   padding: var(--spacing-2) var(--spacing-3);
-  border-top: 1px solid var(--gray-100);
+  border-top: 1px solid var(--border-color);
+  transition: border-color var(--transition-fast);
 }
 
 .btn-secondary,
@@ -995,12 +1017,13 @@ const handleSearch = () => {
 }
 
 .btn-secondary {
-  background: var(--gray-100);
-  color: var(--gray-700);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
 }
 
 .btn-secondary:hover {
-  background: var(--gray-200);
+  background: var(--surface-hover);
 }
 
 .btn-primary {
@@ -1018,12 +1041,14 @@ const handleSearch = () => {
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-2) var(--spacing-3);
-  border-top: 1px solid var(--gray-100);
+  border-top: 1px solid var(--border-color);
+  transition: border-color var(--transition-fast);
 }
 
 .review-label {
   font-size: 14px;
-  color: var(--gray-600);
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
 }
 
 .star-rating {
@@ -1051,29 +1076,34 @@ const handleSearch = () => {
 /* Order Footer */
 .order-footer {
   padding: var(--spacing-2) var(--spacing-3);
-  background: var(--gray-50);
-  border-top: 1px solid var(--gray-100);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--spacing-2);
+  transition: all var(--transition-fast);
 }
 
 
 .shipping-address {
   padding: var(--spacing-2) var(--spacing-3);
-  background: var(--gray-50);
-  border-top: 1px solid var(--gray-100);
-  border-bottom: 1px solid rgb(230, 230, 230);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
 }
 
 .shipping-address h4 {
   font-size: 14px;
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
 }
 
 .shipping-address span {
   font-size: 14px;
-  color: var(--gray-500);
+  color: var(--text-secondary);
   font-weight: 500;
+  transition: color var(--transition-fast);
 }
 
 .footer-info,
@@ -1086,14 +1116,17 @@ const handleSearch = () => {
 .order-id,
 .payment-method {
   font-size: 12px;
-  color: var(--gray-500);
+  color: var(--text-secondary);
   font-weight: 500;
+  transition: color var(--transition-fast);
 }
 
 .order-date,
 .payment-status {
   font-size: 12px;
   font-weight: 600;
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
 }
 
 .payment-paid {

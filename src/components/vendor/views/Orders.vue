@@ -2396,63 +2396,72 @@ function handleKeyDown(event: KeyboardEvent) {
   transform: translateX(-2px);
 }
 
-/* Mobile Navigation Enhancements */
+/* ==================== MOBILE-FIRST RESPONSIVE DESIGN ==================== */
+/* Enhanced Mobile Navigation & Layout */
 @media (max-width: 768px) {
-  /* Page Container */
+  /* Page Container - Optimized mobile spacing */
   .order-cards-page {
     padding: 0.75rem;
-    padding-bottom: 8rem;
-    gap: 1rem;
+    padding-bottom: 2rem;
+    gap: 0.875rem;
     overflow-x: hidden;
   }
 
-  /* Page Header */
+  /* Page Header - Compact mobile layout */
   .page-header {
-    padding: 0.25rem 0 1rem;
+    padding: 0.5rem 0 0.75rem;
+    gap: 0.4rem;
   }
 
   .page-title {
-    font-size: 1.5rem;
-    gap: 0.5rem;
+    font-size: 1.35rem;
+    gap: 0.4rem;
+    line-height: 1.2;
   }
 
   .title-icon {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.35rem;
+    height: 1.35rem;
+    flex-shrink: 0;
   }
 
   .page-subtitle {
     font-size: 0.8rem;
-    padding-left: 2rem;
+    padding-left: 1.75rem;
+    line-height: 1.3;
+    color: var(--text-secondary);
   }
   
-  /* Navigation Tabs */
+  /* Navigation Tabs - Horizontal scroll with enhanced UX */
   .enhanced-nav {
     overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     scrollbar-color: rgba(31, 139, 78, 0.3) transparent;
+    scroll-snap-type: x proximity;
+    margin: 0 -0.75rem;
+    padding: 0 0.75rem 0.4rem;
   }
   
   .enhanced-nav::-webkit-scrollbar {
-    height: 4px;
+    height: 3px;
   }
   
   .enhanced-nav::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
-    border-radius: 2px;
+    background: transparent;
   }
   
   .enhanced-nav::-webkit-scrollbar-thumb {
     background: var(--color-primary);
-    border-radius: 2px;
+    border-radius: 3px;
   }
   
   .status-tabs {
     flex-wrap: nowrap;
     min-width: max-content;
-    padding: 0.5rem;
     gap: 0.4rem;
+    padding: 0.35rem;
   }
   
   .status-chip {
@@ -2460,43 +2469,112 @@ function handleKeyDown(event: KeyboardEvent) {
     white-space: nowrap;
     padding: 0.5rem 0.75rem;
     font-size: 0.75rem;
-    gap: 0.375rem;
+    gap: 0.35rem;
+    scroll-snap-align: start;
+    min-height: 38px;
   }
   
   .status-icon {
     width: 14px;
     height: 14px;
   }
+
+  .status-chip .count {
+    font-size: 0.6rem;
+    padding: 1px 5px;
+  }
   
-  /* Controls & Search */
+  /* Controls & Search - Mobile-first stack layout */
   .controls {
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.625rem;
+    align-items: stretch;
   }
   
   .search-box {
     width: 100%;
+    padding: 0.625rem 0.75rem;
+  }
+
+  .search-box .icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .search-box input {
+    font-size: 0.85rem;
   }
   
   .right-actions {
     width: 100%;
+    display: flex;
+    gap: 0.5rem;
     justify-content: space-between;
   }
+
+  .right-actions .btn {
+    flex: 1;
+    justify-content: center;
+    min-height: 38px;
+    font-size: 0.75rem;
+    padding: 0.5rem 0.625rem;
+  }
+
+  .right-actions .btn .icon {
+    width: 14px;
+    height: 14px;
+  }
   
-  /* Order Cards */
-  .cards-grid {
+  /* Filters Panel - Full width mobile */
+  .filters-panel {
+    padding: 0.875rem;
     gap: 0.875rem;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+    gap: 0.875rem;
+  }
+
+  .filter-group input,
+  .filter-group select {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .filters-actions {
+    width: 100%;
+  }
+
+  .filters-actions .btn {
+    width: 100%;
+  }
+
+  /* Summary - Better mobile spacing */
+  .summary {
+    font-size: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0;
+  }
+  
+  /* Order Cards Grid - Single column mobile */
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
   
   .order-card {
-    padding: 0.875rem;
-    border-radius: 12px;
-    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 14px;
+    gap: 0.875rem;
   }
   
   .card-head {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.625rem;
+    align-items: flex-start;
   }
   
   .card-head .left {
@@ -2504,278 +2582,655 @@ function handleKeyDown(event: KeyboardEvent) {
   }
   
   .card-head .oid {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
+    font-weight: 700;
     word-break: break-all;
+    line-height: 1.3;
   }
   
   .card-head .created {
-    font-size: 0.6rem;
+    font-size: 0.7rem;
+    margin-top: 0.25rem;
+    opacity: 0.85;
+  }
+
+  .card-head .right {
+    width: 100%;
   }
   
   .status-pill {
     align-self: flex-start;
-    font-size: 0.5rem;
-    padding: 0.3rem 0.5rem;
+    font-size: 0.65rem;
+    padding: 0.4rem 0.65rem;
+    border-radius: 6px;
   }
   
-  /* Info Lines */
+  /* Info Lines - Enhanced readability */
   .info-line {
-    font-size: 0.65rem;
-    gap: 0.5rem;
+    font-size: 0.8rem;
+    gap: 0.625rem;
     flex-wrap: wrap;
+    line-height: 1.4;
   }
   
   .info-line .lbl {
-    font-size: 0.6rem;
-    min-width: 80px;
+    font-size: 0.75rem;
+    min-width: 95px;
+    font-weight: 600;
+    color: var(--text-secondary);
   }
   
   .info-line .val {
-    font-size: 0.65rem;
+    font-size: 0.8rem;
     word-break: break-word;
+    flex: 1;
+    color: var(--text-primary);
   }
   
   .mono {
-    font-size: 0.6rem;
+    font-size: 0.7rem;
     word-break: break-all;
+    font-family: 'Courier New', monospace;
   }
   
   .pay-badge {
-    font-size: 0.5rem;
-    padding: 2px 5px;
+    font-size: 0.65rem;
+    padding: 3px 7px;
+    border-radius: 4px;
+    margin-left: 0.4rem;
   }
   
-  /* Items List */
+  /* Items List - Better mobile layout */
   .items-list {
-    gap: 0.625rem;
+    gap: 0.75rem;
   }
   
   .item-row {
-    gap: 0.625rem;
+    gap: 0.75rem;
+    align-items: flex-start;
   }
   
   .thumb {
-    width: 60px;
-    height: 45px;
-    min-width: 60px;
+    width: 70px;
+    height: 52px;
+    min-width: 70px;
+    flex-shrink: 0;
+    border-radius: 8px;
   }
   
-  .it-name, .it-label {
-    font-size: 0.65rem;
+  .it-name {
+    font-size: 0.8rem;
+    line-height: 1.3;
+    margin-bottom: 0.15rem;
   }
-  
+
   .it-label {
-    font-size: 0.5rem;
+    font-size: 0.65rem;
+    margin-bottom: 0.25rem;
+    opacity: 0.85;
   }
   
   .it-sub {
-    font-size: 0.55rem;
+    font-size: 0.7rem;
+    opacity: 0.75;
   }
   
   .it-total {
-    font-size: 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
   }
   
-  /* Shipping Block */
+  /* Shipping Block - Mobile optimized */
   .ship-block {
-    padding: 0.5rem;
-    font-size: 0.55rem;
+    padding: 0.75rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
   }
   
   .ship-title {
-    font-size: 0.5rem;
+    font-size: 0.7rem;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
   }
   
-  /* Buttons */
+  /* Action Buttons - Grid layout for mobile */
   .actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
-    flex-wrap: wrap;
   }
   
   .btn {
-    font-size: 0.6rem;
-    padding: 0.45rem 0.65rem;
+    font-size: 0.75rem;
+    padding: 0.55rem 0.75rem;
   }
   
   .btn.tiny {
-    padding: 0.35rem 0.5rem;
-    font-size: 0.55rem;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.7rem;
+    min-height: 40px;
+    justify-content: center;
   }
   
   .icon.mini {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
   }
   
   .expand-btn {
-    font-size: 0.6rem;
-    padding: 0.5rem;
+    font-size: 0.75rem;
+    padding: 0.65rem;
+    min-height: 42px;
+    gap: 0.5rem;
   }
   
-  /* Pagination */
+  /* Pagination - Mobile friendly */
   .enhanced-pagination {
+    display: flex;
+    justify-content: space-between;
     gap: 0.5rem;
-    font-size: 0.65rem;
-    flex-wrap: wrap;
+    font-size: 0.75rem;
+    align-items: center;
   }
   
   .pagination-btn {
-    min-width: 60px;
-    padding: 0.4rem 0.6rem;
-    font-size: 0.65rem;
+    min-width: 75px;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.75rem;
+    min-height: 42px;
   }
   
   .pagination-info {
-    padding: 0.4rem 0.8rem;
-    min-width: 100px;
-    flex-direction: column;
-    gap: 0.25rem;
-    font-size: 0.65rem;
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
   }
   
   .page-icon {
     display: none;
   }
   
-  /* Chat Button */
+  /* Chat Button - Touch friendly */
   .btn-icon.chat-btn {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
+    padding: 0.4rem;
   }
   
   .btn-tooltip {
     display: none;
   }
   
-  /* Agreement Modal */
+  /* Agreement Modal - Full screen mobile */
   .agreement-modal-overlay {
-    padding: 0.5rem;
+    padding: 0;
   }
   
   .agreement-modal-container {
     max-width: 100%;
-    max-height: 90vh;
+    width: 100%;
+    max-height: 100vh;
+    height: 100vh;
+    border-radius: 0;
+    margin: 0;
   }
   
   .agreement-modal-header {
-    padding: 0.75rem 1rem;
+    padding: 1rem 1.15rem;
+    border-radius: 0;
   }
   
   .agreement-modal-header h3 {
-    font-size: 0.9rem;
+    font-size: 1rem;
+    line-height: 1.3;
   }
   
   .connection-status {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
   }
   
   .chat-history {
-    padding: 0.75rem;
+    padding: 1rem;
   }
   
   .message-bubble {
-    max-width: 90%;
-    padding: 0.625rem 0.875rem;
+    max-width: 85%;
+    padding: 0.75rem 1rem;
+    border-radius: 14px;
   }
   
   .msg-text {
-    font-size: 0.8rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
   }
   
   .msg-meta {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
+    margin-top: 0.35rem;
   }
   
   .chat-input-area {
-    padding: 0.75rem;
-    gap: 0.5rem;
+    padding: 0.875rem 1rem;
+    gap: 0.625rem;
   }
   
   .chat-input-area textarea {
-    font-size: 0.8rem;
-    padding: 0.625rem 0.875rem;
-    min-height: 40px;
+    font-size: 0.875rem;
+    padding: 0.75rem 0.9rem;
+    min-height: 44px;
+    line-height: 1.4;
   }
   
   .btn-send {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    flex-shrink: 0;
   }
   
   /* Enhanced Empty Chat */
   .enhanced-empty-chat {
-    padding: 24px 16px;
+    padding: 2rem 1.15rem;
   }
   
   .enhanced-empty-chat .empty-icon {
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
   }
   
   .empty-content h3 {
-    font-size: 16px;
+    font-size: 1.05rem;
+    line-height: 1.3;
   }
   
   .empty-content p {
-    font-size: 13px;
+    font-size: 0.875rem;
+    line-height: 1.5;
   }
   
   /* Empty State */
   .empty-state {
-    padding: 2rem 1rem;
-    font-size: 0.8rem;
+    padding: 3rem 1.15rem;
+    font-size: 0.875rem;
   }
   
   .empty-state .icon.large {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 1rem;
+  }
+
+  /* Loading Skeleton */
+  .loading-skeleton {
+    height: 300px;
+    min-height: 300px;
   }
 }
 
-/* Extra Small Screens */
+/* Extra Small Screens - Ultra compact mobile */
 @media (max-width: 480px) {
   .order-cards-page {
-    padding: 0.5rem;
+    padding: 0.625rem;
+    gap: 0.875rem;
   }
 
   .page-header {
-    padding: 0.25rem 0 0.75rem;
+    padding: 0.375rem 0 0.875rem;
   }
 
   .page-title {
-    font-size: 1.25rem;
+    font-size: 1.35rem;
     gap: 0.4rem;
+    line-height: 1.2;
   }
 
   .title-icon {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.35rem;
+    height: 1.35rem;
   }
 
   .page-subtitle {
-    font-size: 0.75rem;
-    padding-left: 1.65rem;
+    font-size: 0.8rem;
+    padding-left: 1.75rem;
+    line-height: 1.4;
   }
   
+  /* Status Tabs - Compact */
+  .enhanced-nav {
+    margin: 0 -0.625rem;
+    padding: 0 0.625rem 0.4rem;
+  }
+
   .status-chip {
-    padding: 0.4rem 0.6rem;
-    font-size: 0.7rem;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.75rem;
+    min-height: 38px;
+  }
+
+  .status-icon {
+    width: 13px;
+    height: 13px;
+  }
+  
+  /* Search & Actions - Stacked */
+  .search-box {
+    padding: 0.65rem 0.8rem;
+  }
+
+  .search-box input {
+    font-size: 0.85rem;
+  }
+
+  .right-actions .btn {
+    font-size: 0.75rem;
+    min-height: 40px;
+    padding: 0.5rem 0.65rem;
+  }
+
+  /* Cards - More compact */
+  .cards-grid {
+    gap: 0.875rem;
   }
   
   .order-card {
-    padding: 0.75rem;
+    padding: 0.875rem;
+    gap: 0.75rem;
+    border-radius: 12px;
   }
   
   .card-head .oid {
-    font-size: 0.8rem;
+    font-size: 0.875rem;
+  }
+
+  .card-head .created {
+    font-size: 0.65rem;
+  }
+
+  .status-pill {
+    font-size: 0.6rem;
+    padding: 0.35rem 0.6rem;
   }
   
+  /* Info Lines - Compact */
   .info-line {
-    font-size: 0.6rem;
+    font-size: 0.75rem;
+    gap: 0.5rem;
   }
   
   .info-line .lbl {
+    min-width: 85px;
+    font-size: 0.7rem;
+  }
+
+  .info-line .val {
+    font-size: 0.75rem;
+  }
+
+  .mono {
+    font-size: 0.65rem;
+  }
+
+  .pay-badge {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+  }
+
+  /* Items - Compact layout */
+  .thumb {
+    width: 65px;
+    height: 48px;
+    min-width: 65px;
+  }
+
+  .it-name {
+    font-size: 0.75rem;
+  }
+
+  .it-label {
+    font-size: 0.6rem;
+  }
+
+  .it-sub {
+    font-size: 0.65rem;
+  }
+
+  .it-total {
+    font-size: 0.75rem;
+  }
+
+  /* Shipping Block */
+  .ship-block {
+    padding: 0.65rem;
+    font-size: 0.7rem;
+  }
+
+  .ship-title {
+    font-size: 0.65rem;
+  }
+
+  /* Actions - Compact buttons */
+  .actions {
+    gap: 0.45rem;
+  }
+
+  .btn.tiny {
+    padding: 0.45rem 0.6rem;
+    font-size: 0.675rem;
+    min-height: 38px;
+  }
+
+  .icon.mini {
+    width: 13px;
+    height: 13px;
+  }
+
+  .expand-btn {
+    font-size: 0.7rem;
+    padding: 0.6rem;
+    min-height: 40px;
+  }
+
+  /* Pagination - Compact */
+  .pagination-btn {
     min-width: 70px;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.7rem;
+    min-height: 40px;
+  }
+
+  .pagination-info {
+    padding: 0.45rem;
+    font-size: 0.7rem;
+  }
+
+  /* Chat Button */
+  .btn-icon.chat-btn {
+    width: 30px;
+    height: 30px;
+  }
+
+  /* Modal - Full screen */
+  .agreement-modal-header h3 {
+    font-size: 0.95rem;
+  }
+
+  .connection-status {
+    font-size: 0.7rem;
+  }
+
+  .message-bubble {
+    padding: 0.65rem 0.875rem;
+  }
+
+  .msg-text {
+    font-size: 0.825rem;
+  }
+
+  .msg-meta {
+    font-size: 0.625rem;
+  }
+
+  .chat-input-area {
+    padding: 0.75rem 0.875rem;
+  }
+
+  .chat-input-area textarea {
+    font-size: 0.825rem;
+    padding: 0.65rem 0.8rem;
+    min-height: 42px;
+  }
+
+  .btn-send {
+    width: 42px;
+    height: 42px;
+  }
+
+  /* Empty States */
+  .enhanced-empty-chat {
+    padding: 1.5rem 1rem;
+  }
+
+  .enhanced-empty-chat .empty-icon {
+    width: 52px;
+    height: 52px;
+  }
+
+  .empty-content h3 {
+    font-size: 1rem;
+  }
+
+  .empty-content p {
+    font-size: 0.825rem;
+  }
+
+  .empty-state {
+    padding: 2.5rem 1rem;
+  }
+
+  .empty-state .icon.large {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Summary */
+  .summary {
+    font-size: 0.7rem;
+    gap: 0.5rem;
+  }
+}
+
+/* Tablet & Medium Screens (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .order-cards-page {
+    padding: 1.25rem;
+  }
+
+  /* Page Header - Tablet layout */
+  .page-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .page-subtitle {
+    flex-basis: 100%;
+    padding-left: 2.25rem;
+  }
+
+  /* Status Tabs - Allow wrapping on tablet */
+  .enhanced-nav {
+    flex-wrap: wrap;
+  }
+
+  .status-chip {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  /* Search & Actions - Better tablet spacing */
+  .controls {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 280px;
+  }
+
+  .right-actions {
+    flex-shrink: 0;
+    width: auto;
+  }
+
+  /* Filters - Two columns */
+  .filters-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Cards Grid - Two columns on tablet */
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.15rem;
+  }
+
+  .order-card {
+    padding: 1.15rem;
+  }
+
+  /* Actions - Better spacing */
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    grid-template-columns: none;
+  }
+
+  /* Pagination - Centered with good spacing */
+  .enhanced-pagination {
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .pagination-info {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1.15rem;
+  }
+
+  .page-icon {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    margin-right: 0.5rem;
+  }
+}
+
+/* Large Screens (1025px+) - Ensure optimal desktop experience */
+@media (min-width: 1025px) {
+  .cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  }
+
+  .enhanced-pagination {
+    justify-content: center;
+  }
+
+  /* Hover enhancements for desktop */
+  .status-chip:hover {
+    transform: translateY(-1px);
+  }
+
+  .order-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .btn:hover {
+    transform: translateY(-1px);
   }
 }
 

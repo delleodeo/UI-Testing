@@ -116,13 +116,15 @@ const handleOverlayClick = () => {
 }
 
 .modal-container {
-  background: white;
+  background: var(--surface);
   border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px var(--shadow-color), 0 10px 10px -5px var(--shadow-color);
   max-width: 400px;
   width: 100%;
   overflow: hidden;
   animation: slideIn 0.3s ease-out;
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
 }
 
 .modal-header {
@@ -149,10 +151,11 @@ const handleOverlayClick = () => {
   padding: 0.5rem;
   border-radius: 6px;
   transition: background-color 0.2s ease;
+  color: var(--text-secondary);
 }
 
 .close-button:hover {
-  background: #F3F4F6;
+  background: var(--surface-hover);
 }
 
 .modal-content {
@@ -162,14 +165,16 @@ const handleOverlayClick = () => {
 .modal-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
   margin: 0 0 0.5rem 0;
+  transition: color var(--transition-fast);
 }
 
 .modal-message {
-  color: #6B7280;
+  color: var(--text-secondary);
   line-height: 1.5;
   margin: 0;
+  transition: color var(--transition-fast);
 }
 
 .modal-extra-content {

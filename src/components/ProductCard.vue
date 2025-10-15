@@ -9,10 +9,12 @@ import type { Product } from '../types/product';
 import { useVendorStore } from '../stores/vendorStores';
 import { handleImageError } from '../utils/fallbackImage';
 import { useCartStore } from '../stores/cartStores';
+import { useTheme } from '../composables/useTheme';
 
 const cartStore = useCartStore();
 const productStore = useProductsStore();
 const vendorStore = useVendorStore();
+const { isDark } = useTheme();
 const isOpen = ref(false);
 const selectedProductData = ref<Product | null>(null);
 
@@ -136,32 +138,33 @@ const viewProduct = (productId) => {
 
 }
 
-
 .cards {
     animation: fadeIn 0.3s ease-out;
     border-radius: 12px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: all var(--transition-fast);
     cursor: pointer;
     min-height: 12rem;
-    border: 1px solid rgba(219, 217, 207, 0.521);
-    box-shadow: 0 0 1px rgba(0, 0, 0, 0.308);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-small);
     max-width: 300px;
+    background: var(--surface);
 }
 
 .cards:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-medium);
 }
 
 .img-con {
     width: 100%;
-    background-color: rgb(199, 199, 199);
+    background-color: var(--bg-secondary);
     display: flex;
     align-items: center;
-}
+}   
+
 
 .img-con img {
     width: 100%;
@@ -173,12 +176,13 @@ const viewProduct = (productId) => {
 
 .details-con {
     padding: 5px 10px;
-    background-color: var(--background-color);
+    background-color: var(--surface);
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
     gap: .5rem;
     justify-content: space-between;
+    transition: background-color var(--transition-fast);
 }
 
 .details-con .name {
@@ -192,6 +196,8 @@ const viewProduct = (productId) => {
     margin: 0;
     hyphens: auto;
     font-weight: 600;
+    color: var(--text-primary);
+    transition: color var(--transition-fast);
 }
 
 .details-con .description {
@@ -206,6 +212,8 @@ const viewProduct = (productId) => {
     hyphens: auto;
     margin: 0;
     font-size: clamp(var(--font-size-sm), 3vw, var(--font-size-base));
+    color: var(--text-secondary);
+    transition: color var(--transition-fast);
 }
 
 .rating-sold {
@@ -216,7 +224,7 @@ const viewProduct = (productId) => {
 .rating-sold .icon {
     height: 1.2rem;
     aspect-ratio: 1;
-    color: rgb(219, 137, 13);
+    color: #fbbf24;
 }
 
 .rating-sold span {
@@ -225,6 +233,8 @@ const viewProduct = (productId) => {
     display: flex;
     align-items: center;
     gap: 3px;
+    color: var(--text-secondary);
+    transition: color var(--transition-fast);
 }
 
 .rating-sold span span {
@@ -232,7 +242,8 @@ const viewProduct = (productId) => {
 }
 
 .divider {
-    color: grey;
+    color: var(--text-secondary);
+    opacity: 0.5;
 }
 
 .price-add-btn {
@@ -243,7 +254,7 @@ const viewProduct = (productId) => {
 
 .price-add-btn button {
     font-size: clamp(14px, 2.5vw, 16px);
-    color: var(--background-color);
+    color: white;
     font-weight: 600;
     display: flex;
     align-items: center;
@@ -259,7 +270,7 @@ const viewProduct = (productId) => {
     flex-wrap: nowrap;
     gap: 5px;
     cursor: pointer;
-    transition: var(--transition-fast);
+    transition: all var(--transition-fast);
 }
 
 .price-add-btn button span {

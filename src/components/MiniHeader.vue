@@ -5,7 +5,10 @@ import {
   ArrowLeftIcon,
 } from "@heroicons/vue/24/outline";
 import { useRouter } from "vue-router";
+import { useTheme } from "../composables/useTheme";
+
 const router = useRouter();
+const { isDark } = useTheme();
 
 const goBack = () => {
   router.back();
@@ -53,13 +56,15 @@ const goToCart = () => {
 <style scoped>
 .product-header-nav {
   width: 100%;
-  background-color: var(--background-color);
-  box-shadow: 0 1px 3px rgba(216, 216, 216, 0.192);
+  background-color: var(--surface);
+  box-shadow: var(--shadow-small);
   position: sticky;
   top: 0;
   z-index: 11;
   max-width: 1200px;
   margin: 0 auto;
+  border-bottom: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
 }
 
 .header-container {
@@ -88,7 +93,13 @@ const goToCart = () => {
   background-color: transparent;
   border: 0;
   outline: 0;
-  color: rgb(65, 65, 65);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.header-back-btn:hover {
+  color: var(--primary-color);
 }
 
 .cart-icon {
@@ -122,14 +133,15 @@ const goToCart = () => {
 .search-input-wrapper {
   display: flex;
   flex: 1 1 auto;
-  background-color: var(--background-color);
+  background-color: var(--bg-secondary);
   border-radius: 10px;
   overflow: hidden;
   align-items: center;
   padding: 0 10px;
   gap: 5px;
   border: 2px solid var(--primary-color);
-  box-shadow: 0 0 3px rgb(219, 219, 219);
+  box-shadow: var(--shadow-small);
+  transition: all var(--transition-fast);
 }
 
 .search-input {
@@ -139,6 +151,13 @@ const goToCart = () => {
   outline: none;
   background-color: transparent;
   padding: 10px 0;
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
+}
+
+.search-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
 }
 
 .header-cart-btn {
@@ -161,14 +180,15 @@ const goToCart = () => {
   right: -7px;
   background-color: var(--secondary-color);
   border-radius: 50rem;
-  color: var(--text-white);
+  color: white;
   width: clamp(24px, 3vw, 26px);
   display: flex;
   align-items: center;
   justify-content: center;
   aspect-ratio: 1;
   font-weight: 600;
-  border: 2px solid var(--background-color);
+  border: 2px solid var(--surface);
+  transition: all var(--transition-fast);
 }
 
 @media (min-width: 767px) {

@@ -31,10 +31,12 @@ import ProductCard from "../components/ProductCard.vue";
 import Loading from "../components/Loading.vue"
 import { useVendorStore } from "../stores/vendorStores";
 import { Alert } from "../components/composable/Alert";
+import { useTheme } from "../composables/useTheme";
 
 const vendorStore = useVendorStore()
 const route = useRoute()
 const router = useRouter()
+const { isDark } = useTheme()
 
 // Component state
 const seller = computed<Seller>(() => vendorStore.vendorData);
@@ -514,8 +516,9 @@ onUnmounted(() => {
 <style scoped>
 .seller-shop-page {
 	min-height: 100vh;
-	background: #f8fafc;
+	background: var(--bg-primary);
 	font-family: 'Inter', system-ui, -apple-system, sans-serif;
+	transition: background-color var(--transition-fast);
 }
 
 .container {
@@ -744,10 +747,10 @@ onUnmounted(() => {
 	position: absolute;
 	top: calc(100% + 8px);
 	right: 0;
-	background: white;
+	background: var(--surface);
 	border-radius: 12px;
-	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-	border: 2px solid #e5e7eb;
+	box-shadow: var(--shadow-medium);
+	border: 2px solid var(--border-color);
 	overflow: hidden;
 	z-index: 100;
 	min-width: 160px;
@@ -761,8 +764,8 @@ onUnmounted(() => {
 	text-align: left;
 	cursor: pointer;
 	font-size: 14px;
-	color: #374151;
-	transition: all 0.2s ease;
+	color: var(--text-primary);
+	transition: all var(--transition-fast);
 	font-weight: 500;
 	display: flex;
 	align-items: center;
@@ -770,8 +773,8 @@ onUnmounted(() => {
 }
 
 .contact-item:hover {
-	background: #f9fafb;
-	color: #10b981;
+	background: var(--surface-hover);
+	color: var(--primary-color);
 }
 
 .contact-icon {
@@ -805,19 +808,20 @@ onUnmounted(() => {
 }
 
 .stat-card {
-	background: white;
+	background: var(--surface);
 	border-radius: 16px;
 	padding: 24px;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	box-shadow: var(--shadow-medium);
 	display: flex;
 	align-items: center;
 	gap: 16px;
-	transition: all 0.2s ease;
+	transition: all var(--transition-fast);
+	border: 1px solid var(--border-color);
 }
 
 .stat-card:hover {
 	transform: translateY(-2px);
-	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+	box-shadow: var(--shadow-large);
 }
 
 .stat-icon {
@@ -860,21 +864,25 @@ onUnmounted(() => {
 .stat-number {
 	font-size: 24px;
 	font-weight: 700;
-	color: #1f2937;
+	color: var(--text-primary);
 	line-height: 1.2;
+	transition: color var(--transition-fast);
 }
 
 .stat-label {
 	font-size: 14px;
-	color: #6b7280;
+	color: var(--text-secondary);
 	font-weight: 500;
+	transition: color var(--transition-fast);
 }
 
 .stat-subtext {
 	font-size: 12px;
-	color: #9ca3af;
+	color: var(--text-secondary);
+	opacity: 0.7;
 	font-weight: 400;
 	margin-top: 2px;
+	transition: color var(--transition-fast);
 }
 
 .stat-card.clickable {
@@ -895,7 +903,7 @@ onUnmounted(() => {
 .rating-stars .star {
 	width: 12px;
 	height: 12px;
-	color: #d1d5db;
+	color: var(--border-color);
 	transition: color 0.2s ease;
 }
 
@@ -938,7 +946,8 @@ onUnmounted(() => {
 /* Products Section */
 .products-section {
 	padding: 40px 0;
-	background: white;
+	background: var(--bg-primary);
+	transition: background-color var(--transition-fast);
 }
 
 .section-header {
@@ -952,14 +961,16 @@ onUnmounted(() => {
 .section-title h2 {
 	font-size: 32px;
 	font-weight: 700;
-	color: #1f2937;
+	color: var(--text-primary);
 	margin: 0 0 8px 0;
+	transition: color var(--transition-fast);
 }
 
 .section-subtitle {
 	font-size: 16px;
-	color: #6b7280;
+	color: var(--text-secondary);
 	margin: 0;
+	transition: color var(--transition-fast);
 }
 
 /* Controls Section */
@@ -972,15 +983,17 @@ onUnmounted(() => {
 }
 
 .products-count {
-	color: #6b7280;
+	color: var(--text-secondary);
 	font-size: 14px;
 	font-weight: 500;
+	transition: color var(--transition-fast);
 }
 
 .count-text {
 	padding: 8px 12px;
-	background: #f3f4f6;
+	background: var(--bg-secondary);
 	border-radius: 8px;
+	transition: background-color var(--transition-fast);
 }
 
 /* Sort Dropdown */
@@ -994,31 +1007,32 @@ onUnmounted(() => {
 	align-items: center;
 	gap: 8px;
 	padding: 12px 16px;
-	background: white;
-	border: 2px solid #e5e7eb;
+	background: var(--surface);
+	border: 2px solid var(--border-color);
 	border-radius: 12px;
 	cursor: pointer;
 	font-size: 14px;
 	font-weight: 600;
-	color: #374151;
-	transition: all 0.2s ease;
+	color: var(--text-primary);
+	transition: all var(--transition-fast);
 	min-width: 180px;
 }
 
 .sort-icon {
 	width: 16px;
 	height: 16px;
-	color: #10b981;
+	color: var(--primary-color);
 }
 
 .sort-button:hover {
-	border-color: #10b981;
-	box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+	border-color: var(--primary-color);
+	box-shadow: var(--shadow-small);
+	background: var(--surface-hover);
 }
 
 .sort-button.active {
-	border-color: #10b981;
-	background: #f0fdf4;
+	border-color: var(--primary-color);
+	background: var(--surface-hover);
 }
 
 .chevron {
@@ -1037,10 +1051,10 @@ onUnmounted(() => {
 	top: calc(100% + 8px);
 	left: 0;
 	right: 0;
-	background: white;
-	border: 2px solid #e5e7eb;
+	background: var(--surface);
+	border: 2px solid var(--border-color);
 	border-radius: 12px;
-	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+	box-shadow: var(--shadow-medium);
 	z-index: 100;
 	overflow: hidden;
 }
@@ -1053,17 +1067,18 @@ onUnmounted(() => {
 	text-align: left;
 	cursor: pointer;
 	font-size: 14px;
-	color: #374151;
-	transition: all 0.2s ease;
+	color: var(--text-primary);
+	transition: all var(--transition-fast);
 	font-weight: 500;
 }
 
 .dropdown-item:hover {
-	background: #f9fafb;
+	background: var(--surface-hover);
+	color: var(--primary-color);
 }
 
 .dropdown-item.active {
-	background: #10b981;
+	background: var(--primary-color);
 	color: white;
 }
 
@@ -1108,31 +1123,35 @@ onUnmounted(() => {
 .empty-products {
 	text-align: center;
 	padding: 60px 20px;
-	color: #6b7280;
+	color: var(--text-secondary);
+	transition: color var(--transition-fast);
 }
 
 .empty-icon {
 	width: 80px;
 	height: 80px;
 	margin: 0 auto 24px;
-	background: #f3f4f6;
+	background: var(--bg-secondary);
 	border-radius: 50%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	transition: background-color var(--transition-fast);
 }
 
 .empty-icon .icon {
 	width: 40px;
 	height: 40px;
-	color: #9ca3af;
+	color: var(--text-secondary);
+	transition: color var(--transition-fast);
 }
 
 .empty-products h3 {
 	font-size: 24px;
 	font-weight: 600;
-	color: #374151;
+	color: var(--text-primary);
 	margin: 0 0 12px 0;
+	transition: color var(--transition-fast);
 }
 
 .empty-products p {

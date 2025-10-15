@@ -4,9 +4,11 @@ import { useRouter } from "vue-router";
 import { MagnifyingGlassIcon, XMarkIcon, ArrowLeftIcon } from "@heroicons/vue/24/outline";
 import { useProductsStore } from "../stores/productStores";
 import { debounce } from "../utils/debounce";
+import { useTheme } from "../composables/useTheme";
 
 const router = useRouter();
 const productStore = useProductsStore();
+const { isDark } = useTheme();
 
 // Reactive state
 const searchQuery = ref("");
@@ -319,6 +321,8 @@ onUnmounted(() => {
   max-height: 100dvh;
   padding: 1rem;
   height: 100dvh;
+  background: var(--bg-primary);
+  transition: background-color var(--transition-fast);
 }
 
 .header-group {
@@ -354,10 +358,11 @@ onUnmounted(() => {
   align-items: center;
   width: 100%;
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(9, 74, 37, 0.12);
+  box-shadow: 0 8px 32px var(--shadow-color);
   border: 2px solid var(--primary-color);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  background: var(--surface);
 }
 
 .search-input-container:focus-within {
@@ -375,13 +380,13 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  color: #6b7280;
-  border-right: 1px solid #e5e7eb;
+  color: var(--text-secondary);
+  border-right: 1px solid var(--border-color);
 }
 
 .back-button:hover {
-  background: #f8fffe;
-  color: #094a25;
+  background: var(--surface-hover);
+  color: var(--primary-color);
 }
 
 .back-button .icon {
@@ -391,10 +396,11 @@ onUnmounted(() => {
 
 .search-icon {
   padding: 1.25rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
-  border-right: 1px solid #e5e7eb;
+  border-right: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
 }
 
 .search-icon .icon {
@@ -408,13 +414,14 @@ onUnmounted(() => {
   border: none;
   outline: none;
   font-size: 1.1rem;
-  color: #1f2937;
+  color: var(--text-primary);
   background: transparent;
   font-weight: 500;
+  transition: color var(--transition-fast);
 }
 
 .search-input::placeholder {
-  color: #9ca3af;
+  color: var(--text-secondary);
   font-weight: 400;
 }
 
@@ -424,17 +431,17 @@ onUnmounted(() => {
   right: 0px;
   background: none;
   border: none;
-  color: #6b7280;
+  color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
   transition: all 0.2s ease;
-  border-left: 1px solid #e5e7eb;
+  border-left: 1px solid var(--border-color);
 }
 
 .clear-button:hover {
-  color: #374151;
-  background: #f8fffe;
+  color: var(--text-primary);
+  background: var(--surface-hover);
 }
 
 .clear-button .icon {
@@ -448,13 +455,14 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   padding: 1rem;
-  background: white;
+  background: var(--surface);
   border-radius: 0 0 16px 16px;
-  box-shadow: 0 8px 32px rgba(9, 74, 37, 0.12);
+  box-shadow: 0 8px 32px var(--shadow-color);
   display: flex;
   justify-content: center;
   z-index: 1000;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
 }
 
 .spinner {
@@ -481,12 +489,14 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   border-radius: 0 0 16px 16px;
-  box-shadow: 0 22px 40px rgba(9, 74, 37, 0.1);
+  box-shadow: 0 22px 40px var(--shadow-color);
   max-height: 90dvh;
   overflow-y: auto;
   z-index: 1000;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-color);
   height: fit-content;
+  background: var(--surface);
+  transition: all var(--transition-fast);
 }
 
 .suggestions-section {
@@ -495,16 +505,18 @@ onUnmounted(() => {
 
 .section-header {
   padding: 1rem 1.5rem 0.5rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color var(--transition-fast);
 }
 
 .section-header h4 {
   margin: 0;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  transition: color var(--transition-fast);
 }
 
 .suggestion-item {
@@ -513,7 +525,7 @@ onUnmounted(() => {
   padding: 1rem 1.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  border-bottom: 1px solid #f9fafb;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .suggestion-item:last-child {
@@ -522,7 +534,7 @@ onUnmounted(() => {
 
 .suggestion-item:hover,
 .suggestion-item.active {
-  background: linear-gradient(135deg, #f8fffe 0%, #f0f9f4 100%);
+  background: var(--surface-hover);
   transform: translateX(4px);
 }
 
@@ -550,11 +562,12 @@ onUnmounted(() => {
 .product-name {
   font-size: 1rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color var(--transition-fast);
 }
 
 .product-price {
@@ -566,25 +579,28 @@ onUnmounted(() => {
 
 .product-category {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0;
   font-weight: 500;
+  transition: color var(--transition-fast);
 }
 
 .no-results {
   padding: 2rem;
   text-align: center;
-  color: #6b7280;
-  background: white;
+  color: var(--text-secondary);
+  background: var(--surface);
   border-radius: 0 0 16px 16px;
+  transition: all var(--transition-fast);
 }
 
 .search-suggestions {
-  background: white;
+  background: var(--surface);
   border-radius: 16px;
   padding: 2rem;
-  box-shadow: 0 8px 32px rgba(9, 74, 37, 0.12);
+  box-shadow: 0 8px 32px var(--shadow-color);
   margin-bottom: 2rem;
+  transition: all var(--transition-fast);
 }
 
 .search-suggestions h3 {

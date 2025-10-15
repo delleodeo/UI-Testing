@@ -19,10 +19,12 @@ const LoadingCard = defineAsyncComponent(() => import("../components/Loading.vue
 import { useCartStore } from "../stores/cartStores"
 import { useProductsStore } from "../stores/productStores"
 import { useAuthStore } from "../stores/authStores"
+import { useTheme } from "../composables/useTheme"
 
 const productsStore = useProductsStore()
 const cartStore = useCartStore()
 const authStore = useAuthStore()
+const { isDark } = useTheme()
 const route = useRoute()
 const forceRefresh = ref(false)
 
@@ -151,14 +153,17 @@ onBeforeUnmount(() => {
   max-width: 1180px;
   margin: 0 auto;
   padding-bottom: 0;
+  background-color: var(--bg-primary);
+  transition: background-color var(--transition-fast);
 }
 
 .no-product {
   min-height: 7rem;
   display: flex;
   align-items: center;
-  color: var(--text-light);
+  color: var(--text-secondary);
   justify-content: center;
+  transition: color var(--transition-fast);
 }
 
 .loading-con {
@@ -180,6 +185,8 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  background-color: var(--bg-primary);
+  transition: background-color var(--transition-fast);
 }
 
 .product-listing-container h3 {
@@ -188,6 +195,8 @@ onBeforeUnmount(() => {
   width: 100%;
   max-width: 1200px;
   margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
 }
 
 .sticky {
@@ -225,6 +234,8 @@ onBeforeUnmount(() => {
 
 .product-heading .heading {
   font-size: clamp(1.2rem, 2vw, 2rem);
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
 }
 
 .product-heading p {
@@ -232,6 +243,8 @@ onBeforeUnmount(() => {
   width: 100%;
   text-align: center;
   font-size: clamp(16px, 2vw, 18px);
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
 }
 
 @media (max-width: 768px) {

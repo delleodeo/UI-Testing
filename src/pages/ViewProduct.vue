@@ -10,9 +10,11 @@ import MiniHeader from "../components/MiniHeader.vue";
 import { Alert } from "../components/composable/Alert"
 import { useProductsStore } from "../stores/productStores"
 import { useRoute, useRouter } from "vue-router";
+import { useTheme } from "../composables/useTheme";
 const route = useRoute();
 const router = useRouter();
 const productStore = useProductsStore();
+const { isDark } = useTheme();
 
 // Component state
 const selectedImage = ref<string>("");
@@ -352,10 +354,11 @@ const viewVendor = (vendorId) => {
 
 <style scoped>
 .product-details-page {
-  background-color: var(--background-color);
+  background-color: var(--bg-primary);
   max-height: 100dvh;
   padding-top: var(--header-height);
   overflow: auto;
+  transition: background-color var(--transition-fast);
 }
 
 /* Modern Header */
@@ -390,10 +393,12 @@ const viewVendor = (vendorId) => {
   border-radius: 12px;
   overflow: hidden;
   box-shadow: var(--shadow);
-  background: var(--background-alt);
+  background: var(--surface);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all var(--transition-fast);
+  border: 1px solid var(--border-color);
 }
 
 .main-image img {
@@ -407,9 +412,10 @@ const viewVendor = (vendorId) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--text-light);
-  background: #f5f5f5;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
   height: 100%;
+  transition: all var(--transition-fast);
 }
 
 .placeholder-icon {
@@ -435,8 +441,9 @@ const viewVendor = (vendorId) => {
   display: flex;
   overflow: auto;
   min-width: 60px;
-  border: 1px solid rgb(214, 214, 214);
+  border: 1px solid var(--border-color);
   padding: 1px;
+  transition: border-color var(--transition-fast);
 }
 
 .thumbnail {
@@ -477,7 +484,7 @@ const viewVendor = (vendorId) => {
   height: 8px;
   border-radius: 50%;
   border: none;
-  background: #ddd;
+  background: var(--border-color);
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -526,8 +533,9 @@ const viewVendor = (vendorId) => {
 .product-title {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--text-color);
+  color: var(--text-primary);
   line-height: 1.2;
+  transition: color var(--transition-fast);
 }
 
 .rating-section {
@@ -538,8 +546,9 @@ const viewVendor = (vendorId) => {
 
 
 .reviews-count {
-  color: var(--text-light);
+  color: var(--text-secondary);
   font-size: clamp(12px, 2vw, 14px);
+  transition: color var(--transition-fast);
 }
 
 
@@ -559,22 +568,23 @@ const viewVendor = (vendorId) => {
 
 .original-price {
   font-size: 1rem;
-  color: var(--text-light);
+  color: var(--text-secondary);
   text-decoration: line-through;
   max-width: 24ch;
   word-break: break-word;
+  transition: color var(--transition-fast);
 }
 
 /* Product Stats */
 .product-stats {
   display: flex;
-
   gap: 1rem;
-  background-color: rgb(235, 235, 235);
+  background-color: var(--surface);
   padding: 1rem 10px;
   border-radius: 12px;
   box-shadow: var(--shadow);
-
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
 }
 
 .stat-item {
@@ -586,19 +596,21 @@ const viewVendor = (vendorId) => {
 }
 
 .stat-item:not(:last-child) {
-  border-right: 1px solid rgb(201, 201, 201);
+  border-right: 1px solid var(--border-color);
 }
 
 .stat-label {
   font-size: clamp(12px, 2vw, 1rem);
-  color: var(--text-light);
+  color: var(--text-secondary);
   font-weight: 500;
+  transition: color var(--transition-fast);
 }
 
 .stat-value {
   font-size: clamp(12.78px, 2vw, 1.1rem);
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
 }
 
 .filled {
@@ -607,17 +619,19 @@ const viewVendor = (vendorId) => {
 
 /* Product Options */
 .product-options {
-  background: var(--background-color);
+  background: var(--surface);
   padding: 1.5rem;
   border-radius: 15px;
   box-shadow: var(--shadow);
   border-top: 3px solid var(--primary-color);
   border-bottom: 3px solid var(--primary-color);
+  transition: all var(--transition-fast);
 }
 
 .product-options h3 {
   margin: 0 0 1rem 0;
-  color: var(--text-color);
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
 }
 
 .options-grid {
@@ -775,49 +789,57 @@ const viewVendor = (vendorId) => {
 }
 
 .btn:disabled {
-  background: #ccc;
-  color: #666;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
   cursor: not-allowed;
   transform: none;
+  opacity: 0.5;
 }
 
 /* Product Description */
 .product-description {
-  background: var(--background-alt);
+  background: var(--surface);
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-medium);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
 }
 
 .product-description h2 {
   margin: 10px 0 1rem 0;
-  color: var(--text-color);
+  color: var(--text-primary);
   font-size: clamp(1.3rem, 2vw, 1.5rem);
+  transition: color var(--transition-fast);
 }
 
 .product-description p {
   line-height: 1.6;
-  color: var(--text-color);
+  color: var(--text-primary);
   font-size: 1rem;
+  transition: color var(--transition-fast);
 }
 
 /* Reviews Section */
 .reviews-section {
-  background: var(--background-alt);
+  background: var(--surface);
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-medium);
   max-height: 40rem;
   overflow: auto;
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
 }
 
 .reviews-section h2 {
   margin: 10px 0 1rem 0;
-  color: var(--text-color);
+  color: var(--text-primary);
   font-size: clamp(1.3rem, 2vw, 1.5rem);
   position: sticky;
   top: 0;
-  background-color: var(--background-alt);
+  background-color: var(--surface);
+  transition: all var(--transition-fast);
 }
 
 .reviews-list {
@@ -847,7 +869,8 @@ const viewVendor = (vendorId) => {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
 }
 
 .product-header {
@@ -863,19 +886,22 @@ const viewVendor = (vendorId) => {
 .review-comment {
   margin: 0.5rem 0;
   line-height: 1.5;
-  color: var(--text-color);
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
 }
 
 .review-date {
   font-size: 0.8rem;
-  color: var(--text-light);
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
 }
 
 .no-reviews {
   text-align: center;
   padding: 2rem;
-  color: var(--text-light);
+  color: var(--text-secondary);
   margin-bottom: 2rem;
+  transition: color var(--transition-fast);
 }
 
 /* Review Form */
@@ -889,8 +915,9 @@ const viewVendor = (vendorId) => {
   padding: 10px;
   gap: 10px;
   display: flex;
-  background-color: rgba(128, 128, 128, 0.24);
+  background-color: var(--bg-secondary);
   border-radius: .8rem;
+  transition: background-color var(--transition-fast);
 }
 
 .shop-desktop p {
@@ -957,7 +984,7 @@ const viewVendor = (vendorId) => {
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #ddd;
+  color: var(--border-color);
   cursor: pointer;
   transition: color 0.2s ease;
 }
@@ -969,19 +996,20 @@ const viewVendor = (vendorId) => {
 
 /* Related Products */
 .related-products {
-  background: var(--background-alt);
+  background: var(--surface);
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-medium);
   padding-bottom: 3rem;
-
-
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
 }
 
 .related-products h2 {
   margin: 0 0 2rem 0;
-  color: var(--text-color);
+  color: var(--text-primary);
   font-size: clamp(1.3rem, 2vw, 1.5rem);
+  transition: color var(--transition-fast);
 }
 
 /* Mobile Sticky Actions */

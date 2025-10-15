@@ -10,12 +10,16 @@ import {
     MagnifyingGlassIcon,
     MapPinIcon,
     MoonIcon,
+    SunIcon,
     Bars3Icon,
     XMarkIcon
 } from '@heroicons/vue/24/outline';
 import { useCartStore } from '../stores/cartStores';
+import { useTheme } from '../composables/useTheme';
+
 const router = useRouter();
 const cartStore = useCartStore();
+const { isDark, toggleTheme } = useTheme();
 
 const isAccountOpen = ref(false);
 const isWalletOpen = ref(false)
@@ -125,8 +129,11 @@ const goToCart = () => {
             <!-- Desktop Actions -->
             <div class="actions-section desktop-actions">
                 <div class="action-icons">
-                    <button class="icon-button" title="Dark mode">
-                        <MoonIcon class="action-icon" />
+                    <button @click="toggleTheme" class="icon-button theme-toggle" :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
+                        <Transition name="theme-icon" mode="out-in">
+                            <SunIcon v-if="isDark" key="sun" class="action-icon" />
+                            <MoonIcon v-else key="moon" class="action-icon" />
+                        </Transition>
                     </button>
                     <button class="icon-button" title="Location">
                         <MapPinIcon class="action-icon" />
@@ -157,6 +164,7 @@ const goToCart = () => {
     min-height: 4rem;
     position: fixed;
     top: 0;
+    transition: background-color var(--transition-fast);
 }
 
 @keyframes fadeIn {
@@ -246,12 +254,13 @@ const goToCart = () => {
 }
 
 .search-container {
-    background-color: rgb(255, 255, 255);
+    background-color: var(--surface);
     flex: 1 1 auto;
     display: flex;
     padding: 3px;
     border-radius: 8px;
     max-width: 35rem;
+    transition: background-color var(--transition-fast);
 }
 
 .search-container input {
@@ -259,6 +268,13 @@ const goToCart = () => {
     padding: 0px 1rem;
     border: 0;
     outline: 0;
+    background-color: transparent;
+    color: var(--text-primary);
+    transition: color var(--transition-fast);
+}
+
+.search-container input::placeholder {
+    color: var(--text-secondary);
 }
 
 .search-container button {
@@ -272,6 +288,7 @@ const goToCart = () => {
     justify-self: center;
     color: var(--text-white);
     border-radius: 6px;
+    transition: background-color var(--transition-fast);
 }
 
 .search-icon {
@@ -341,13 +358,13 @@ const goToCart = () => {
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background-color: white;
+    background-color: var(--surface);
     border-radius: 50rem;
     border: none;
     border-radius: 9999px;
     cursor: pointer;
     transition: all var(--transition-fast);
-    color: var(--text-dark);
+    color: var(--text-primary);
     font-weight: 500;
     min-height: 2.75rem;
 }
@@ -414,7 +431,13 @@ const goToCart = () => {
     border-radius: 0.5rem;
     outline: none;
     font-size: var(--font-size-base);
-    background-color: var(--background-color);
+    background-color: var(--surface);
+    color: var(--text-primary);
+    transition: all var(--transition-fast);
+}
+
+.mobile-search-input::placeholder {
+    color: var(--text-secondary);
 }
 
 .mobile-search-button {
@@ -460,9 +483,10 @@ const goToCart = () => {
     top: 100%;
     left: 0;
     right: 0;
-    background-color: var(--background-color);
+    background-color: var(--bg-primary);
     box-shadow: var(--shadow-lg);
     z-index: 10;
+    transition: background-color var(--transition-fast);
 }
 
 .mobile-menu-content {
@@ -486,13 +510,13 @@ const goToCart = () => {
     cursor: pointer;
     border-radius: 0.5rem;
     transition: background-color var(--transition-fast);
-    color: var(--text-dark);
+    color: var(--text-primary);
     font-size: var(--font-size-base);
     min-height: 3.5rem;
 }
 
 .mobile-action-button:hover {
-    background-color: #f3f4f6;
+    background-color: var(--surface-hover);
 }
 
 .mobile-action-button.primary {
@@ -695,5 +719,31 @@ const goToCart = () => {
         height: 1.75rem;
         font-size: 0.75rem;
     }
+}
+
+/* Theme Toggle Animation */
+.theme-toggle {
+    overflow: hidden;
+}
+
+.theme-icon-enter-active,
+.theme-icon-leave-active {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-icon-enter-from {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.8);
+}
+
+.theme-icon-leave-to {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.8);
+}
+
+.theme-icon-enter-to,
+.theme-icon-leave-from {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
 }
 </style>

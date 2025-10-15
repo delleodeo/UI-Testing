@@ -31,12 +31,14 @@ import { CheckBadgeIcon } from '@heroicons/vue/24/solid'
 import { useUserStore } from '../stores/userStores'
 import { useCartStore } from '../stores/cartStores'
 import { useAuthStore } from '../stores/authStores'
+import { useTheme } from '../composables/useTheme'
 
 const router = useRouter()
 const userStore = useUserStore()
 const cartStore = useCartStore()
 const authStore = useAuthStore()
 const userData = computed(() => userStore.userData)
+const { isDark, toggleTheme } = useTheme()
 
 // Profile state management
 const activeTab = ref('overview')
@@ -46,7 +48,6 @@ const showVendorForm = ref(false)
 const isLoading = ref(false)
 
 // Modern UI state
-const isDarkTheme = ref(false)
 const showNotifications = ref(false)
 const notifications = ref([
   { id: 1, title: 'Profile Updated', message: 'Your profile information has been saved', type: 'success', time: '2 minutes ago' },
@@ -172,11 +173,6 @@ const toggleVendorForm = () => {
   showVendorForm.value = !showVendorForm.value
 }
 
-const toggleTheme = () => {
-  isDarkTheme.value = !isDarkTheme.value
-  document.documentElement.classList.toggle('dark-theme', isDarkTheme.value)
-}
-
 const toggleNotifications = () => {
   showNotifications.value = !showNotifications.value
 }
@@ -203,7 +199,7 @@ onMounted(async () => {
 
 
 <template>
-  <div class="profile-container" :class="{ 'dark-theme': isDarkTheme }">
+  <div class="profile-container">
     <!-- Modern Header -->
     <div class="modern-header">
       <div class="header-content">
@@ -224,7 +220,7 @@ onMounted(async () => {
             <span v-if="notifications.length" class="notification-badge">{{ notifications.length }}</span>
           </button>
           <button @click="toggleTheme" class="modern-btn theme-btn">
-            <svg v-if="!isDarkTheme" class="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg v-if="!isDark" class="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
             </svg>
             <svg v-else class="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -640,8 +636,9 @@ onMounted(async () => {
 /* Base Styles */
 .profile-container {
   min-height: 100vh;
-  background-color: var(--gray-50);
+  background-color: var(--bg-primary);
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  transition: background-color var(--transition-fast);
 }
 
 /* Modern Header */
@@ -649,9 +646,10 @@ onMounted(async () => {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: white;
-  border-bottom: 1px solid var(--gray-200);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
 }
 
 .header-content {
@@ -671,8 +669,9 @@ onMounted(async () => {
 .page-title-header {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--gray-900);
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
+  transition: color var(--transition-fast);
 }
 
 .breadcrumb {
@@ -681,7 +680,8 @@ onMounted(async () => {
   justify-content: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: var(--gray-500);
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
 }
 
 .breadcrumb-item.active {
@@ -701,7 +701,7 @@ onMounted(async () => {
 }
 
 .modern-btn {
-  background: var(--gray-100);
+  background: var(--bg-secondary);
   border: none;
   border-radius: var(--radius-8);
   padding: 0.75rem;

@@ -18,10 +18,12 @@ import {
 import {
     ArrowLeftIcon
 } from '@heroicons/vue/24/solid';
+import { useTheme } from '../composables/useTheme';
 
 const cartStore = useCartStore();
 const userStore = useUserStore()
 const router = useRouter()
+const { isDark } = useTheme()
 const selectedItems = ref(null)
 const checkoutData = computed(() => cartStore.selectedItemData)
 const isCheckOut = ref(false)
@@ -191,12 +193,13 @@ const closeCheckout = () => {
     max-width: 1200px;
     margin: 0 auto;
     padding: 24px;
-    background-color: var(--background-color);
+    background-color: var(--bg-primary);
     min-height: 100dvh;
     max-height: 100dvh;
     overflow: auto;
     padding-bottom: 120px;
     /* Space for sticky checkout */
+    transition: background-color var(--transition-fast);
 }
 
 /* Header Styles */
@@ -207,8 +210,9 @@ const closeCheckout = () => {
     margin-bottom: 32px;
     padding-bottom: 24px;
     border-bottom: 2px solid var(--border-color);
-    background-color: #fff;
+    background-color: var(--surface);
     z-index: 100;
+    transition: all var(--transition-fast);
 }
 
 .cart-title {
@@ -243,9 +247,10 @@ const closeCheckout = () => {
     padding: 12px 16px;
     border: 2px solid var(--border-color);
     border-radius: 8px;
-    background: whitesmoke;
+    background: var(--bg-secondary);
     color: var(--text-secondary);
     font-size: 14px;
+    transition: all var(--transition-fast);
     font-weight: 500;
     cursor: pointer;
     transition: var(--transition);
@@ -293,19 +298,22 @@ const closeCheckout = () => {
     text-align: center;
     padding: 80px 20px;
     color: var(--text-secondary);
+    transition: color var(--transition-fast);
 }
 
 .empty-icon {
     width: 80px;
     height: 80px;
     margin: 0 auto 24px;
-    color: #ccc;
+    color: var(--text-secondary);
+    transition: color var(--transition-fast);
 }
 
 .empty-cart h2 {
     font-size: 24px;
     margin-bottom: 12px;
     color: var(--primary-color);
+    transition: color var(--transition-fast);
 }
 
 /* Shop Sections */
@@ -317,15 +325,16 @@ const closeCheckout = () => {
 }
 
 .shop-section {
-    background: white;
+    background: var(--surface);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-medium);
     overflow: hidden;
-    transition: var(--transition);
+    transition: all var(--transition-fast);
+    border: 1px solid var(--border-color);
 }
 
 .shop-section:hover {
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 20px var(--shadow-color);
 }
 
 .shop-header {
@@ -333,8 +342,9 @@ const closeCheckout = () => {
     justify-content: space-between;
     align-items: center;
     padding: 20px 24px;
-    background: var(--hover-bg);
+    background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
+    transition: all var(--transition-fast);
 }
 
 .shop-info {
@@ -356,9 +366,9 @@ const closeCheckout = () => {
     gap: 8px;
     font-size: 18px;
     font-weight: 600;
-    color: rgb(5, 49, 5);
+    color: var(--text-primary);
     cursor: pointer;
-    transition: var(--transition);
+    transition: all var(--transition-fast);
 }
 
 .shop-name:hover {
@@ -378,12 +388,12 @@ const closeCheckout = () => {
     padding: 8px 12px;
     border: 1px solid var(--secondary-color);
     border-radius: 6px;
-    background: white;
+    background: var(--surface);
     color: var(--secondary-color);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all var(--transition-fast);
 }
 
 .btn-delete-shop:hover {
@@ -403,12 +413,12 @@ const closeCheckout = () => {
     gap: 16px;
     align-items: flex-start;
     padding: 20px 24px;
-    border-bottom: 1px solid #f0f0f0;
-    transition: var(--transition);
+    border-bottom: 1px solid var(--border-color);
+    transition: all var(--transition-fast);
 }
 
 .cart-item:hover {
-    background: var(--hover-bg);
+    background: var(--surface-hover);
 }
 
 .cart-item:last-child {
@@ -457,7 +467,7 @@ const closeCheckout = () => {
 .item-ctgry {
     font-size: 16px;
     font-weight: 600;
-    color: rgb(5, 49, 5);
+    color: var(--text-primary);
     margin: 0 0 8px 0;
     line-height: 1.4;
     display: -webkit-box;
@@ -466,11 +476,12 @@ const closeCheckout = () => {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    transition: color var(--transition-fast);
 }
 
 .item-ctgry {
     font-size: clamp(10px, 2vw, 12px);
-    color: rgba(145, 145, 145, 0.801);
+    color: var(--text-secondary);
 }
 
 .item-price {
@@ -492,10 +503,11 @@ const closeCheckout = () => {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: var(--hover-bg);
+    background: var(--bg-secondary);
     border-radius: 8px;
     padding: 4px;
     width: fit-content;
+    transition: background-color var(--transition-fast);
 }
 
 .qty-btn {
@@ -506,9 +518,10 @@ const closeCheckout = () => {
     justify-content: center;
     border: 1px solid var(--border-color);
     border-radius: 6px;
-    background: white;
+    background: var(--surface);
+    color: var(--text-primary);
     cursor: pointer;
-    transition: var(--transition);
+    transition: all var(--transition-fast);
 }
 
 .qty-btn:hover:not(:disabled) {
@@ -548,10 +561,10 @@ const closeCheckout = () => {
     justify-content: center;
     border: 1px solid var(--border-color);
     border-radius: 6px;
-    background: white;
+    background: var(--surface);
     color: var(--text-secondary);
     cursor: pointer;
-    transition: var(--transition);
+    transition: all var(--transition-fast);
 }
 
 .btn-delete-item:hover {
@@ -567,12 +580,13 @@ const closeCheckout = () => {
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: #fdfaf3e0;
+    background-color: var(--surface);
     border-top: 1px solid var(--border-color);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-large);
     z-index: 1000;
     backdrop-filter: blur(10px);
     margin-bottom: 3.5rem;
+    transition: all var(--transition-fast);
 }
 
 .checkout-content {
@@ -638,7 +652,9 @@ const closeCheckout = () => {
 }
 
 .btn-checkout.disabled {
-    background: #ccc;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    opacity: 0.5;
     cursor: not-allowed;
     transform: none;
 }

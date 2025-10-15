@@ -5,9 +5,11 @@ import { XMarkIcon } from '@heroicons/vue/24/solid';
 import type { ProductOption, SelectedItems } from '../types/product';
 import { useProductsStore } from "../stores/productStores";
 import { useCartStore } from "../stores/cartStores";
+import { useTheme } from "../composables/useTheme";
 
 const productStore = useProductsStore()
 const cartStore = useCartStore()
+const { isDark } = useTheme()
 const props = defineProps<{
   isOpen: boolean;
   optData: any;
@@ -188,15 +190,17 @@ const addToCart = async () => {
   border-radius: 1rem;
   width: clamp(340px, 95vw, 400px);
   max-width: 90%;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-large);
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background-color: var(--background-color);
+  background-color: var(--surface);
   position: relative;
-  transition: all 100ms;
+  transition: all var(--transition-fast);
   border-top: 5px solid var(--primary-color);
   border-bottom: 5px solid var(--primary-color);
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
 }
 
 .content {
@@ -252,6 +256,8 @@ const addToCart = async () => {
   text-overflow: ellipsis;
   padding-top: 5px;
   width: 100%;
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
 }
 
 .select {
@@ -279,13 +285,13 @@ const addToCart = async () => {
 
 .items {
   height: fit-content;
-  background-color: rgba(243, 236, 212, 0.568);
+  background-color: var(--bg-secondary);
   border-radius: 5px;
   display: flex;
   padding: 3px;
-  border: 1px solid rgb(221, 221, 221);
+  border: 1px solid var(--border-color);
   gap: 5px;
-  transition: all 100ms;
+  transition: all var(--transition-fast);
   cursor: pointer;
 }
 
@@ -328,12 +334,13 @@ const addToCart = async () => {
 .close-btn .icon {
   height: 1.5rem;
   cursor: pointer;
-  transition: all 100ms;
-  color: black;
+  transition: all var(--transition-fast);
+  color: var(--text-primary);
 }
 
 .close-btn .icon:hover {
   opacity: .8;
+  color: var(--secondary-color);
 }
 
 .custom-loader-container {
@@ -344,9 +351,10 @@ const addToCart = async () => {
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  background-color: rgba(226, 214, 214, 0.377);
+  background-color: var(--bg-secondary);
+  opacity: 0.5;
   height: 40px;
-
+  transition: background-color var(--transition-fast);
 }
 
 .wave-loader {

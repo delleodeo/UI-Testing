@@ -1,5 +1,8 @@
 <script setup lang="js">
 import { reactive, ref } from 'vue';
+import { useTheme } from '../composables/useTheme';
+
+const { isDark } = useTheme();
 
 const promo = reactive({
     headline: 'Get ',
@@ -86,33 +89,29 @@ main {
     font-size: clamp(1.5rem, 4vw, 3rem);
     font-weight: 800;
     color: #1f2937;
-    /* gray-800 */
     min-width: 20ch;
 }
 
 .highlight {
     color: var(--secondary-color);
-    /* amber-500 */
 }
 
 .promo-description {
     margin-top: 1rem;
     font-size: clamp(1rem, 2vw, 1.25rem);
     color: #374151;
-    /* gray-700 */
 }
 
 .promo-cta {
     margin-top: 1.5rem;
     padding: 0.75rem 1.5rem;
     background-color: var(--secondary-color);
-    /* amber-500 */
     color: white;
     border: none;
     border-radius: 0.5rem;
     font-weight: 700;
     cursor: pointer;
-    transition: transform 0.3s;
+    transition: all var(--transition-fast);
 }
 
 .promo-cta:hover {
