@@ -382,34 +382,21 @@ onMounted(() => {
                   }">
                     <img :src="opt.imageUrl" :alt="p.name" loading="lazy" fetchpriority="low" class="card-opt-thumb"
                       @error="handleImageError" />
-                    <div class="card-opt-meta">
-                      <p class="card-opt-label">
-                        {{ opt.label || "Option " + (i + 1) }}
-                        <span v-if="opt.stock > 0 && opt.stock <= 10" class="card-opt-low">Low</span>
-                      </p>
-                      <p class="card-opt-sub muted">
-                        {{ formatToPHCurrency(opt.price) }}
-                        Stock: {{ opt.stock }}
-                        Sold: {{ opt.sold }}
-                      </p>
-                    </div>
+
 
                     <!-- Option stock controls -->
                     <div class="card-opt-controls">
-
-                      <!-- <div class="card-opt-actions">
-
-                        <button class="btn tiny outline" type="button" @click="minusOneProductOption(p, opt, i)"
-                          :disabled="isOptionUpdating(p._id, optKeyFor(p, opt, i)) ||
-                            opt.stock <= 0
-                            ">
-                          −1
-                        </button>
-                        <button class="btn tiny outline" type="button" @click="addOneProductOption(p, opt, i)"
-                          :disabled="isOptionUpdating(p._id, optKeyFor(p, opt, i))">
-                          +1
-                        </button>
-                      </div> -->
+                      <div class="card-opt-meta">
+                        <p class="card-opt-label">
+                          {{ opt.label || "Option " + (i + 1) }}
+                          <span v-if="opt.stock > 0 && opt.stock <= 10" class="card-opt-low">Low</span>
+                        </p>
+                        <p class="card-opt-sub muted">
+                          Price:{{ formatToPHCurrency(opt.price) }} |
+                          Stock: {{ opt.stock }} |
+                          Sold: {{ opt.sold }}
+                        </p>
+                      </div>
                       <div class="opt-add-field">
                         <input v-model.number="stockAdjustOptMap[
                           getOptModelKey(p._id, optKeyFor(p, opt, i))
@@ -510,6 +497,7 @@ onMounted(() => {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -912,12 +900,13 @@ onMounted(() => {
 
 .card-opt-row {
   display: flex;
-  gap: 0.7rem;
+  gap: 0.9rem;
   align-items: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: 0.75rem;
-  padding: 0.55rem 0.65rem;
+  padding: 0.6rem 0.7rem;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
 }
 
 .card-opt-row.updating {
@@ -935,41 +924,52 @@ onMounted(() => {
 }
 
 .card-opt-meta {
+  display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
+  min-width: 0; /* prevent overflowing text in flex items */
 }
 
 .card-opt-label {
   margin: 0 0 2px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.25px;
-  color: #fff;
+  font-size: 0.825rem; /* slightly larger for readability */
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: var(--text-primary); /* align with theme text color */
+  overflow: hidden; /* ensure long labels don't overflow */
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .card-opt-label .card-opt-low {
-  margin-left: 0.25rem;
-  font-size: 0.6rem;
-  padding: 1px;
+  margin-left: 0.5rem;
+  font-size: 0.65rem;
+  padding: 2px 6px;
   border-radius: 0.35rem;
-  background: var(--low);
-  color: var(--secondary-color);
+  background: var(--color-warning, #fbbf24);
+  color: var(--text-on-warning, #111827);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .card-opt-sub {
   margin: 0;
-  font-size: 0.65rem;
-  color: var(--text-light-2);
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  line-height: 1.2;
+  display: block;
+  overflow: hidden;
+  white-space: wrap; /* keep sub text concise and avoid wrapping in small spaces */
 }
 
 /* Option stock controls */
 .card-opt-controls {
   display: flex;
-  align-items: flex-start;
-  gap: 0.35rem;
-  flex-direction: column;
+  flex-direction: column; /* stack meta and controls vertically */
+  gap: 0.5rem;
+  align-items: stretch;
+  width: 100%;
 }
 
 .card-opt-actions {
@@ -979,25 +979,39 @@ onMounted(() => {
 
 .opt-add-field {
   display: flex;
-  gap: 0.25rem;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* helper: align actions to right when there is space (desktop) */
+.card-opt-actions-wrap {
+  display: flex;
+  justify-content: flex-end;
   align-items: center;
 }
 
 .opt-add-field input {
   width: 60px;
   padding: 0.35rem 0.45rem;
-  font-size: 0.7rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 0.75rem;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 0.5rem;
-  color: #fff;
+  color: var(--text-primary);
   outline: none;
+  transition: all 0.15s ease;
 
 }
 
 .opt-add-field input:focus {
-  border-color: rgba(255, 255, 255, 0.38);
+  border-color: var(--input-border-focus);
   box-shadow: var(--focus-ring);
+}
+
+.opt-add-field input::placeholder {
+  color: var(--text-tertiary);
+  opacity: 1;
 }
 
 /* Product stock controls */
@@ -1224,6 +1238,22 @@ input[type=number]::-webkit-outer-spin-button {
 
   .btn.tiny {
     font-size: 0.6rem;
+  }
+}
+
+/* Small screens: stack option controls */
+@media (max-width: 480px) {
+  .card-opt-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .opt-add-field {
+    justify-content: flex-start;
+  }
+  .card-opt-thumb {
+    width: 64px;
+    height: 48px;
   }
 }
 </style>

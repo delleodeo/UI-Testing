@@ -165,7 +165,7 @@ async function submitOrder() {
       // remove items from cart only after a successful order
       items.forEach((i) => {
         try {
-          cartStore.deleteItem(vendorId, i.optionId, i.productId)
+          cartStore.deleteItem(vendorId, i.itemId, i.productId, i.optionId)
         } catch (err) {
           console.warn('Failed to remove item from cart', i, err)
         }

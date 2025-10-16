@@ -210,12 +210,12 @@ export const useCartStore = defineStore("cart", {
       return this.selectedItems.includes(itemId);
     },
 
-    async deleteItem(shopId: string, itemId: string, productId: string) {
+    async deleteItem(shopId: string, itemId: string, productId: string, optionId: string) {
       try {
         const deleteItem = await axios.delete(`${API_BASE_URL}/cart/remove`, {
           data: {
             productId,
-            optionId: itemId,
+            optionId,
           },
           headers
         });

@@ -142,7 +142,7 @@ const closeCheckout = () => {
                                     </div>
 
                                     <button class="btn-delete-item"
-                                        @click="cartStore.deleteItem(shop.shopId, item.itemId, item.productId)"
+                                        @click="cartStore.deleteItem(shop.shopId, item.itemId, item.productId, item.optionId)"
                                         aria-label="Delete item">
                                         <TrashIcon class="icon" />
                                     </button>
