@@ -7,6 +7,7 @@ import type { Order, OrderItem, OrderStatus, PaymentMethod } from '../types/orde
 import { handleImageError } from '../utils/fallbackImage'
 import CustomerChatModal from '../components/CustomerChatModal.vue'
 import ConfirmationModal from '../components/ConfirmationModal.vue'
+import OrderTrackerModal from '../components/OrderTrackerModal.vue'
 import { useTheme } from '../composables/useTheme'
 
 const router = useRouter()
@@ -24,6 +25,10 @@ const selectedVendorName = ref('')
 const showCancelModal = ref(false)
 const orderToCancel = ref('')
 const isCancelling = ref(false)
+
+// Tracker modal state
+const showTrackerModal = ref(false)
+const orderToTrack = ref('')
 
 onMounted(async () => {
   await orderStore.fetchOrders()
@@ -151,7 +156,6 @@ const hasAgreementShipping = (order: Order) => {
 // Action handlers
 const requestRefund = (orderId: string) => console.log('Request refund:', orderId)
 const writeReview = (orderId: string) => console.log('Write review:', orderId)
-const trackOrder = (orderId: string) => console.log('Track order:', orderId)
 
 // Show cancel confirmation modal
 const showCancelConfirmation = (orderId: string) => {
@@ -204,6 +208,23 @@ const handleCancelClose = () => {
 
 const rateOrder = (orderId: string, rating: number) =>
   console.log(`Rated order ${orderId} with ${rating} stars`)
+
+// Track order
+const trackOrder = (orderId: string) => {
+  const order = getOrderById(orderId);
+  if (order && order.shippingOption === 'pickup') {
+    alert('This is a pickup order and cannot be tracked on the map.');
+    return;
+  }
+  orderToTrack.value = orderId
+  showTrackerModal.value = true
+}
+
+// Close tracker modal
+const closeTrackerModal = () => {
+  showTrackerModal.value = false
+  orderToTrack.value = ''
+}
 
 // Back navigation
 const goBack = () => {
@@ -287,6 +308,13 @@ const handleSearch = () => {
         </div>
       </template>
     </ConfirmationModal>
+
+    <!-- Order Tracker Modal -->
+    <OrderTrackerModal
+      v-if="showTrackerModal"
+      :order-id="orderToTrack"
+      @close="closeTrackerModal"
+    />
 
     <!-- Header Layout Similar to Shopping Cart -->
     <div class="page-header">

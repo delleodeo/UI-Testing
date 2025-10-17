@@ -27,6 +27,24 @@ const product = computed(() => {
   return productStore.productById
 })
 
+
+const productStock = computed(() => {
+  // product may be undefined while fetching; option may be undefined for simple products
+  const prod = product?.value;
+  if (!prod) return 0;
+
+  // If product has options, sum their stock (safely handle missing stock values)
+  if (Array.isArray(prod.option) && prod.option.length > 0) {
+    return prod.option.reduce((total: number, option: any) => {
+      return total + (option?.stock ?? 0);
+    }, 0);
+  }
+
+  // Fallback to product.stock when no options exist
+  return prod.stock ?? 0;
+});
+
+
 const addToCart = async () => {
   if (product?.value?.option.length <= 0) {
     await productStore.addToCart(product.value?._id, product.value?._id, 1);
@@ -202,7 +220,7 @@ const viewVendor = (vendorId) => {
               </div>
               <div class="stat-item">
                 <span class="stat-label">Stock:</span>
-                <span class="stat-value">{{ product.stock }} units</span>
+                <span class="stat-value">{{productStock || product.stock }} units</span>
               </div>
 
               <div class="stat-item">

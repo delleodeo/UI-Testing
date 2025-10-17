@@ -21,6 +21,15 @@ export interface Address {
   city?: string;
   province?: string;
   zipCode?: string;
+  coordinates?: [number, number]; // [latitude, longitude]
+}
+
+export interface RiderLocation {
+  latitude: number;
+  longitude: number;
+  timestamp: string | Date;
+  speed?: number;
+  heading?: number;
 }
 
 export type OrderStatus =

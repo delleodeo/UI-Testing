@@ -3,6 +3,7 @@ import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import Sidebar from "./Sidebar.vue"
 import Wallet from "./Wallet.vue"
+import OrderTrackerModal from "./OrderTrackerModal.vue"
 import {
     ShoppingCartIcon,
     UserIcon,
@@ -12,21 +13,34 @@ import {
     MoonIcon,
     SunIcon,
     Bars3Icon,
-    XMarkIcon
+    XMarkIcon,
+    TruckIcon
 } from '@heroicons/vue/24/outline';
 import { useCartStore } from '../stores/cartStores';
+import { useOrderStore } from '../stores/OrderStores';
 import { useTheme } from '../composables/useTheme';
 
 const router = useRouter();
 const cartStore = useCartStore();
+const orderStore = useOrderStore();
 const { isDark, toggleTheme } = useTheme();
 
 const isAccountOpen = ref(false);
 const isWalletOpen = ref(false)
 const isMobileMenuOpen = ref(false);
 const isSearchExpanded = ref(false);
+const showTrackerModal = ref(false);
 const containerRef = ref(null);
 const openButtonRef = ref(null);
+
+const trackableOrdersCount = computed(() => {
+    return orderStore.orders.filter(order => 
+        order.status === 'shipped' && 
+        order.shippingOption !== 'pickup' && 
+        order.shippingOption !== 'agreement' && 
+        order.shippingOption !== 'customer agreement'
+    ).length;
+});
 
 const toggleMobileMenu = () => {
     isMobileMenuOpen.value = !isMobileMenuOpen.value;
@@ -75,6 +89,7 @@ function onFocus() {
 const totalItems = computed(() => cartStore.Count);
 onMounted(async () => {
     await cartStore.fetchCart();
+    await orderStore.fetchOrders();
     cartStore.itemCount()
     window.addEventListener('resize', handleResize);
     document.addEventListener('click', handleClickOutside);
@@ -96,11 +111,25 @@ const closeWallet = () => {
 const goToCart = () => {
     router.push("/cart")
 }
+
+const openTracker = () => {
+    showTrackerModal.value = true;
+}
+
+const closeTracker = () => {
+    showTrackerModal.value = false;
+}
 </script>
 
 <template>
     <header class="header">
         <div class="container">
+            <!-- Order Tracker Modal -->
+            <OrderTrackerModal
+                v-if="showTrackerModal"
+                @close="closeTracker"
+            />
+
             <!-- Logo Section -->
             <div class="sidebars-container" ref="containerRef">
                 <TransitionGroup name="slide-fade">
@@ -134,6 +163,10 @@ const goToCart = () => {
                             <SunIcon v-if="isDark" key="sun" class="action-icon" />
                             <MoonIcon v-else key="moon" class="action-icon" />
                         </Transition>
+                    </button>
+                    <button @click="openTracker" class="icon-button" title="Track your order">
+                        <TruckIcon class="action-icon" />
+                        <span v-if="trackableOrdersCount > 0" class="cart-badge">{{ trackableOrdersCount }}</span>
                     </button>
                     <button class="icon-button" title="Location">
                         <MapPinIcon class="action-icon" />
