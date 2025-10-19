@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, watch } from 'vue'
 import MetricCard from '../MetricCard.vue'
 import {
   ChartBarIcon,
@@ -8,6 +8,7 @@ import {
   InboxIcon,
   StarIcon,
   ArrowTrendingUpIcon,
+  UserCircleIcon,
 } from '@heroicons/vue/24/outline'
 import { useVendorDashboardStore } from '../../../stores/vendor/dashboardStores'
 import { formatToPHCurrency } from "../../../utils/currencyFormat.js"
@@ -19,8 +20,8 @@ const vendorData = computed(() => vendorDashboard.vendor)
 const metricCards = computed(() => [
   {
     title: 'Total Revenue',
-    value: formatToPHCurrency(vendorData.value?.totalRevenue),
-    change: 12.5,
+    value: formattedTotalRevenue.value,
+    change: revenueIncreasePercentage.value,
     icon: ChartBarIcon,
     color: 'bg-indigo',
   },
@@ -32,54 +33,58 @@ const metricCards = computed(() => [
   },
   {
     title: 'Total Products',
-    value: (vendorData.value?.totalProducts || 0).toLocaleString(),
+    value: (vendorDashboard.vendorProducts?.length || 0).toLocaleString(),
     icon: CubeIcon,
     color: 'bg-yellow',
   },
   {
     title: 'Average Ratings',
-    value: (vendorData.value?.rating || 0).toFixed(1),
+    value: ((vendorData.value?.rating / vendorData.value?.numRatings) || 0).toFixed(1),
     icon: StarIcon,
     color: 'bg-orange',
   },
   {
-    title: "Today's Orders",
-    value: (0).toLocaleString(),
+    title: 'Profile Views',
+    value: (vendorData.value?.profileViews || 0).toLocaleString(),
     icon: InboxIcon,
     color: 'bg-pink',
   },
   {
-    title: 'Pending Orders',
-    value: (vendorData.value?.pendingOrders || 0).toLocaleString(),
+    title: 'Product Clicks',
+    value: (vendorData.value?.productClicks || 0).toLocaleString(),
     icon: InboxIcon,
-    color: 'bg-yellow',
+    color: 'bg-purple',
   },
 ])
-
-const growthLabel = 'Average Growth'
-const revenuechange = -90;
-const growthValue = 12.4
-const growthChange = 2.1
-const isPositive = growthChange >= 0
-const isRevenuePositive = revenuechange >= 0
-const changeClass = isPositive ? 'text-green-500' : 'text-red-500'
-const changeText = `${isPositive ? '+' : '-'}${growthChange}% from last period`
-const changeRevenueText = `${isRevenuePositive ? '+' : ''}${revenuechange}% from last period`
 
 const tooltipStyle = computed(() => ({
   position: 'absolute',
   left: tooltip.x + 'px',
   top: tooltip.y + 'px',
-  transform: 'translateX(-60%)',
+  transform: 'translateX(-50%)',
   zIndex: 50
 }))
 
-const showTooltip = (event, value, period) => {
+const showTooltip = (event, value, period, monthName = '') => {
   tooltip.show = true
   tooltip.period = period
   tooltip.value = value
-  tooltip.x = event.target.getBoundingClientRect().left + window.scrollX
-  tooltip.y = event.target.getBoundingClientRect().top + window.scrollY - 60
+  tooltip.formattedValue = formatToPHCurrency(value)
+  tooltip.monthName = monthName
+  
+  const chartContainer = event.target.closest('.chart-area') || event.target.closest('.line-chart-container')
+  const containerRect = chartContainer?.getBoundingClientRect()
+  
+  if (containerRect) {
+    // Position tooltip to follow cursor position more accurately
+    tooltip.x = event.clientX - containerRect.left
+    tooltip.y = event.clientY - containerRect.top + 600 // Slightly above cursor
+  } else {
+    // Fallback positioning
+    const rect = event.target.getBoundingClientRect()
+    tooltip.x = rect.left + (rect.width / 2)
+    tooltip.y = rect.top - 40
+  }
 }
 
 const hideTooltip = () => {
@@ -88,7 +93,9 @@ const hideTooltip = () => {
 const tooltip = reactive({
   show: false,
   value: '',
+  formattedValue: '',
   period: '',
+  monthName: '',
   x: 0,
   y: 0
 })
@@ -101,14 +108,38 @@ const rawChartData = computed(() => vendorData.value?.monthlyRevenueComparison |
 
 const parseValue = (val) => parseFloat(String(val || '0').replace(/,/g, '')) || 0
 
+// Get current and previous year data from the new schema
+const currentYearData = computed(() => {
+  const data = rawChartData.value.find(data => data.year === currentYear)?.revenues || {}
+  return data
+})
+
+const previousYearData = computed(() => {
+  const data = rawChartData.value.find(data => data.year === previousYear)?.revenues || {}
+  return data
+})
+
+// Convert the schema data to chart format
+const chartDataRaw = computed(() => {
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                  'July', 'August', 'September', 'October', 'November', 'December']
+  
+  return months.map(month => ({
+    month,
+    currentValue: currentYearData.value[month] || 0,
+    previousValue: previousYearData.value[month] || 0,
+    shortMonth: month.slice(0, 3)
+  }))
+})
+
 const numericMax = computed(() => {
-  if (!rawChartData.value.length) return 0
-  return Math.max(...rawChartData.value.flatMap(d => [parseValue(d.currentValue), parseValue(d.previousValue)]))
+  if (!chartDataRaw.value.length) return 0
+  return Math.max(...chartDataRaw.value.flatMap(d => [d.currentValue, d.previousValue]))
 })
 
 const maxCurrent = computed(() => {
-  if (!rawChartData.value.length) return 0
-  return Math.max(...rawChartData.value.map(d => parseValue(d.currentValue)))
+  if (!chartDataRaw.value.length) return 0
+  return Math.max(...chartDataRaw.value.map(d => d.currentValue))
 })
 
 const paddedMax = computed(() => {
@@ -128,26 +159,247 @@ const yAxisSteps = computed(() => {
 })
 
 const chartData = computed(() => {
-  if (!rawChartData.value.length) return []
+  if (!chartDataRaw.value.length) return []
 
-  return rawChartData.value.map(d => {
+  return chartDataRaw.value.map(d => {
     const currentVal = parseValue(d.currentValue)
     const previousVal = parseValue(d.previousValue)
     const currentHeight = paddedMax.value === 0 ? 0 : Math.max((currentVal / paddedMax.value) * 100, 2)
     const previousHeight = paddedMax.value === 0 ? 0 : Math.max((previousVal / paddedMax.value) * 100, 2)
-
-    // Convert full month to 3-letter abbreviation
-    const shortMonth = d.month.slice(0, 3)
 
     return {
       ...d,
       currentValue: currentVal,
       previousValue: previousVal,
       currentHeight,
-      previousHeight,
-      shortMonth
+      previousHeight
     }
   })
+})
+
+// Calculate revenue change based on current month
+const revenuechange = computed(() => {
+  try {
+    const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long' })
+    const currentMonthRevenue = currentYearData.value?.[currentMonth] || 0
+    const previousMonthRevenue = previousYearData.value?.[currentMonth] || 0
+    
+    if (previousMonthRevenue === 0) return 0
+    return parseFloat(((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue * 100).toFixed(1))
+  } catch (error) {
+    console.warn('Error calculating revenue change:', error)
+    return 0
+  }
+})
+
+const isRevenuePositive = computed(() => revenuechange.value >= 0)
+const changeRevenueText = computed(() => `${isRevenuePositive.value ? '+' : ''}${revenuechange.value}% from last period`)
+
+// Calculate total revenue across all years and months
+const totalRevenueAllTime = computed(() => {
+  if (!rawChartData.value.length) return 0
+  
+  let total = 0
+  rawChartData.value.forEach(yearData => {
+    if (yearData.revenues) {
+      Object.values(yearData.revenues).forEach(monthRevenue => {
+        total += monthRevenue || 0
+      })
+    }
+  })
+  
+  return total
+})
+
+// Format revenue for display (₱500K, ₱1M, ₱1.2M, etc.)
+const formatRevenueDisplay = (amount) => {
+  if (amount >= 1000000) {
+    const millions = amount / 1000000
+    return `₱${millions % 1 === 0 ? millions.toFixed(0) : millions.toFixed(1)}M`
+  } else if (amount >= 500000) {
+    const thousands = amount / 1000
+    return `₱${thousands.toFixed(0)}K`
+  } else if (amount >= 1000) {
+    const thousands = amount / 1000
+    return `₱${thousands.toFixed(1)}K`
+  } else {
+    return formatToPHCurrency(amount)
+  }
+}
+
+const formattedTotalRevenue = computed(() => formatRevenueDisplay(totalRevenueAllTime.value))
+
+// Calculate current year revenue analytics
+const currentYearTotalRevenue = computed(() => {
+  if (!currentYearData.value) return 0
+  
+  return Object.values(currentYearData.value).reduce((total, monthRevenue) => {
+    return total + (monthRevenue || 0)
+  }, 0)
+})
+
+const previousYearsTotalRevenue = computed(() => {
+  if (!rawChartData.value.length) return 0
+  
+  let total = 0
+  rawChartData.value.forEach(yearData => {
+    // Skip current year
+    if (yearData.year !== currentYear && yearData.revenues) {
+      Object.values(yearData.revenues).forEach(monthRevenue => {
+        total += monthRevenue || 0
+      })
+    }
+  })
+  
+  return total
+})
+
+const revenueIncreasePercentage = computed(() => {
+  if (previousYearsTotalRevenue.value === 0) return 0
+  
+  const increase = ((currentYearTotalRevenue.value - previousYearsTotalRevenue.value) / previousYearsTotalRevenue.value) * 100
+  return parseFloat(increase.toFixed(1))
+})
+
+const currentYearContributionPercentage = computed(() => {
+  if (totalRevenueAllTime.value === 0) return 0
+  
+  const contribution = (currentYearTotalRevenue.value / totalRevenueAllTime.value) * 100
+  return parseFloat(contribution.toFixed(1))
+})
+
+// Calculate current month revenue from monthlyRevenueComparison
+const currentMonthRevenue = computed(() => {
+  try {
+    const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long' })
+    const currentYearRevenues = currentYearData.value
+    
+    if (!currentYearRevenues || !currentYearRevenues[currentMonth]) return 0
+    
+    return currentYearRevenues[currentMonth] || 0
+  } catch (error) {
+    console.warn('Error calculating current month revenue:', error)
+    return 0
+  }
+})
+
+// Calculate Compound Monthly Growth Rate (CMGR) and Average Monthly Growth
+const averageMonthlyGrowth = computed(() => {
+  try {
+    const currentYearRevenues = currentYearData.value
+    if (!currentYearRevenues || Object.keys(currentYearRevenues).length === 0) return 0
+    
+    // Get all months with revenue data (non-zero values) in chronological order
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                   'July', 'August', 'September', 'October', 'November', 'December']
+    
+    const revenueEntries = months
+      .map(month => ({ month, revenue: currentYearRevenues[month] || 0 }))
+      .filter(entry => entry.revenue > 0)
+    
+    if (revenueEntries.length < 2) return 0
+    
+    const firstMonthRevenue = revenueEntries[0].revenue
+    const lastMonthRevenue = revenueEntries[revenueEntries.length - 1].revenue
+    const numberOfMonths = revenueEntries.length
+    
+    // CMGR Formula: ((Last Month Revenue / First Month Revenue) ^ (1 / (Number of Months - 1))) - 1
+    const cmgr = Math.pow(lastMonthRevenue / firstMonthRevenue, 1 / (numberOfMonths - 1)) - 1
+    
+    return parseFloat((cmgr * 100).toFixed(2))
+  } catch (error) {
+    console.warn('Error calculating CMGR:', error)
+    return 0
+  }
+})
+
+// Calculate Average of Individual Monthly Growth Rates
+const averageIndividualGrowthRates = computed(() => {
+  try {
+    const currentYearRevenues = currentYearData.value
+    if (!currentYearRevenues || Object.keys(currentYearRevenues).length === 0) return 0
+    
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                   'July', 'August', 'September', 'October', 'November', 'December']
+    
+    const revenueEntries = months
+      .map(month => ({ month, revenue: currentYearRevenues[month] || 0 }))
+      .filter(entry => entry.revenue > 0)
+    
+    if (revenueEntries.length < 2) return 0
+    
+    // Calculate individual monthly growth rates
+    const monthlyGrowthRates = []
+    for (let i = 1; i < revenueEntries.length; i++) {
+      const currentRevenue = revenueEntries[i].revenue
+      const previousRevenue = revenueEntries[i - 1].revenue
+      
+      if (previousRevenue > 0) {
+        const monthlyGrowthRate = ((currentRevenue - previousRevenue) / previousRevenue) * 100
+        monthlyGrowthRates.push(monthlyGrowthRate)
+      }
+    }
+    
+    if (monthlyGrowthRates.length === 0) return 0
+    
+    // Calculate average of all monthly growth rates
+    const avgGrowthRate = monthlyGrowthRates.reduce((sum, rate) => sum + rate, 0) / monthlyGrowthRates.length
+    
+    return parseFloat(avgGrowthRate.toFixed(2))
+  } catch (error) {
+    console.warn('Error calculating average individual growth rates:', error)
+    return 0
+  }
+})
+
+const isGrowthPositive = computed(() => averageMonthlyGrowth.value >= 0)
+const growthChangeText = computed(() => {
+  const cmgr = averageMonthlyGrowth.value
+  const avgIndividual = averageIndividualGrowthRates.value
+  
+  return `CMGR: ${cmgr >= 0 ? '+' : ''}${cmgr}% | Avg: ${avgIndividual >= 0 ? '+' : ''}${avgIndividual}%`
+})
+
+// Chart type toggle
+const chartType = ref('bar') // 'bar' or 'line'
+
+// Profile image error handling
+const imageError = ref(false)
+
+const handleImageError = () => {
+  imageError.value = true
+}
+
+// Reset image error when vendor data changes
+watch(() => vendorData.value?.imageUrl, () => {
+  imageError.value = false
+})
+
+const toggleChartType = () => {
+  chartType.value = chartType.value === 'bar' ? 'line' : 'bar'
+}
+
+// Line chart calculations
+const lineChartPoints = computed(() => {
+  if (!chartData.value.length) return { current: '', previous: '' }
+  
+  const width = 600
+  const height = 200
+  const padding = 40
+  
+  const currentPoints = chartData.value.map((d, i) => {
+    const x = padding + (i * (width - 2 * padding)) / (chartData.value.length - 1)
+    const y = height - padding - (d.currentHeight / 100) * (height - 2 * padding)
+    return `${x},${y}`
+  }).join(' ')
+  
+  const previousPoints = chartData.value.map((d, i) => {
+    const x = padding + (i * (width - 2 * padding)) / (chartData.value.length - 1)
+    const y = height - padding - (d.previousHeight / 100) * (height - 2 * padding)
+    return `${x},${y}`
+  }).join(' ')
+  
+  return { current: currentPoints, previous: previousPoints }
 })
 </script>
 
@@ -175,10 +427,21 @@ const chartData = computed(() => {
 
           <div class="profile-card">
             <div class="profile-header">
-              <img
-                src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=200"
-                alt="Profile" class="profile-image">
-              <h3>{{ vendorData?.storeName || "N/A"}}</h3>
+              <div class="profile-image-container">
+                <img
+                  v-if="!imageError && vendorData?.imageUrl"
+                  :src="vendorData?.imageUrl"
+                  alt="Profile" 
+                  class="profile-image"
+                  @error="handleImageError">
+                <div 
+                  v-else 
+                  class="profile-image profile-image-fallback"
+                >
+                  <UserCircleIcon class="profile-icon" />
+                </div>
+              </div>
+              <h3>{{ vendorData?.storeName || "Loading..."}}</h3>
               <p class="profile-subtitle">Welcome Back</p>
             </div>
             <div class="profile-stats">
@@ -186,10 +449,10 @@ const chartData = computed(() => {
                 <span class="stat-number">{{ vendorData?.followers.length || 0}}</span>
                 <span class="stat-label">Followers</span>
               </div>
-              <div class="stat">
+              <!-- <div class="stat">
                 <span class="stat-number">{{ vendorData?.profileViews || 0}}</span>
                 <span class="stat-label">Profile Views</span>
-              </div>
+              </div> -->
             </div>
           </div>
 
@@ -212,8 +475,8 @@ const chartData = computed(() => {
                   <ArrowTrendingUpIcon />
                 </div>
                 <div class="summary-content">
-                  <span class="summary-label">Total Revenue</span>
-                  <span class="summary-value">{{ formatToPHCurrency(vendorData?.currentMonthlyRevenue) }}</span>
+                  <span class="summary-label">Current Monthly Revenue</span>
+                  <span class="summary-value current-month-revenue">{{ formatToPHCurrency(currentMonthRevenue) }}</span>
                   <span :class="[isRevenuePositive ? 'positive' : 'negative', 'summary-change']">
                     {{ changeRevenueText }}
                   </span>
@@ -226,37 +489,84 @@ const chartData = computed(() => {
                   <ChartBarIcon />
                 </div>
                 <div class="summary-content">
-                  <span class="summary-label">{{ growthLabel }}</span>
-                  <span class="summary-value">{{ growthValue }}%</span>
-                  <span :class="[isPositive ? 'positive' : 'negative', 'summary-change']">
-                    {{ changeText }}
+                  <span class="summary-label">Average Monthly Growth</span>
+                  <span class="summary-value average-growth">{{ averageMonthlyGrowth }}%</span>
+                  <span :class="[isGrowthPositive ? 'positive' : 'negative', 'summary-change']">
+                    {{ growthChangeText }}
                   </span>
 
                 </div>
               </div>
             </div>
 
-            <div v-if="rawChartData?.length > 0" class="chart-container">
-              <div class="chart-header">
-                <h4>Monthly Revenue Comparison</h4>
-                <div class="chart-legend">
-                  <div class="legend-item">
-                    <span class="legend-dot current"></span>
-                    <span>{{ currentYear }}</span>
+            <!-- Revenue Analytics Section -->
+            <div class="revenue-analytics-section">
+              <h4 class="analytics-section-title">{{ currentYear }} Revenue Performance</h4>
+              <div class="revenue-insights">
+                <div class="insight-item">
+                  <div class="insight-icon increase">
+                    <ArrowTrendingUpIcon />
                   </div>
-                  <div class="legend-item">
-                    <span class="legend-dot previous"></span>
-                    <span>{{ previousYear }}</span>
+                  <div class="insight-content">
+                    <span class="insight-text">
+                      Revenue increased by <strong>{{ Math.abs(revenueIncreasePercentage) }}%</strong> 
+                      {{ revenueIncreasePercentage >= 0 ? 'compared to previous years' : 'decrease from previous years' }}
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="insight-item">
+                  <div class="insight-icon contribution">
+                    <ChartBarIcon />
+                  </div>
+                  <div class="insight-content">
+                    <span class="insight-text">
+                      The current year contributes <strong>{{ currentYearContributionPercentage }}%</strong> 
+                      of the total revenue
+                    </span>
                   </div>
                 </div>
               </div>
-              <div class="chart-content">
+            </div>
+
+            <div v-if="chartDataRaw?.length > 0" class="chart-container">
+              <div class="chart-header">
+                <h4>Monthly Revenue Comparison</h4>
+                <div class="chart-controls">
+                  <div class="chart-toggle">
+                    <button 
+                      @click="toggleChartType" 
+                      :class="['toggle-btn', chartType === 'bar' ? 'active' : '']"
+                    >
+                      Bar Chart
+                    </button>
+                    <button 
+                      @click="toggleChartType" 
+                      :class="['toggle-btn', chartType === 'line' ? 'active' : '']"
+                    >
+                      Line Chart
+                    </button>
+                  </div>
+                  <div class="chart-legend">
+                    <div class="legend-item">
+                      <span class="legend-dot current"></span>
+                      <span>{{ currentYear }}</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-dot previous"></span>
+                      <span>{{ previousYear }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Bar Chart -->
+              <div v-if="chartType === 'bar'" class="chart-content">
                 <div class="chart-wrapper">
                   <!-- Dynamic Y Axis -->
                   <div class="chart-y-axis">
                     <span v-for="label in yAxisSteps" :key="label" class="y-label">{{ label }}</span>
                   </div>
-
 
                   <div class="chart-area">
                     <div class="chart-grid">
@@ -267,10 +577,10 @@ const chartData = computed(() => {
                       <div v-for="(data, index) in chartData" :key="index" class="bar-container">
                         <div class="bar-group">
                           <div class="bar current" :style="{ height: data.currentHeight + '%' }"
-                            @mouseenter="showTooltip($event, data.currentValue, '2024')" @mouseleave="hideTooltip">
+                            @mouseenter="showTooltip($event, data.currentValue, currentYear, data.shortMonth)" @mouseleave="hideTooltip">
                           </div>
                           <div class="bar previous" :style="{ height: data.previousHeight + '%' }"
-                            @mouseenter="showTooltip($event, data.previousValue, '2023')" @mouseleave="hideTooltip">
+                            @mouseenter="showTooltip($event, data.previousValue, previousYear, data.shortMonth)" @mouseleave="hideTooltip">
                           </div>
                         </div>
                         <span class="bar-label">{{ data?.shortMonth }}</span>
@@ -279,14 +589,91 @@ const chartData = computed(() => {
                   </div>
                 </div>
               </div>
+              
+              <!-- Line Chart -->
+              <div v-else class="chart-content">
+                <div class="chart-wrapper">
+                  <!-- Dynamic Y Axis -->
+                  <div class="chart-y-axis">
+                    <span v-for="label in yAxisSteps" :key="label" class="y-label">{{ label }}</span>
+                  </div>
+
+                  <div class="chart-area">
+                    <div class="chart-grid">
+                      <div v-for="i in yAxisSteps.length - 1" :key="i" class="grid-line"></div>
+                    </div>
+
+                    <div class="line-chart-container">
+                      <svg width="100%" height="240" viewBox="0 0 600 200" class="line-chart">
+                        <!-- Current year line -->
+                        <polyline
+                          :points="lineChartPoints.current"
+                          class="line current-line"
+                          fill="none"
+                          stroke="#1f8b4e"
+                          stroke-width="3"
+                        />
+                        <!-- Previous year line -->
+                        <polyline
+                          :points="lineChartPoints.previous"
+                          class="line previous-line"
+                          fill="none"
+                          stroke="#3b82f6"
+                          stroke-width="3"
+                        />
+                        <!-- Data points for current year -->
+                        <g v-for="(data, index) in chartData" :key="`current-${index}`">
+                          <circle
+                            :cx="40 + (index * (600 - 2 * 40)) / (chartData.length - 1)"
+                            :cy="200 - 40 - (data.currentHeight / 100) * (200 - 2 * 40)"
+                            r="4"
+                            fill="#1f8b4e"
+                            class="data-point current-point"
+                            @mouseenter="showTooltip($event, data.currentValue, currentYear, data.shortMonth)"
+                            @mouseleave="hideTooltip"
+                          />
+                        </g>
+                        <!-- Data points for previous year -->
+                        <g v-for="(data, index) in chartData" :key="`previous-${index}`">
+                          <circle
+                            :cx="40 + (index * (600 - 2 * 40)) / (chartData.length - 1)"
+                            :cy="200 - 40 - (data.previousHeight / 100) * (200 - 2 * 40)"
+                            r="4"
+                            fill="#3b82f6"
+                            class="data-point previous-point"
+                            @mouseenter="showTooltip($event, data.previousValue, previousYear, data.shortMonth)"
+                            @mouseleave="hideTooltip"
+                          />
+                        </g>
+                      </svg>
+                      
+                      <!-- Month labels -->
+                      <div class="line-chart-labels">
+                        <span 
+                          v-for="(data, index) in chartData" 
+                          :key="index" 
+                          class="line-label"
+                          :style="{ left: `${(index / (chartData.length - 1)) * 100}%` }"
+                        >
+                          {{ data?.shortMonth }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
             </div>
+            
+            <div v-else class="no-data-message">
+              <p>No revenue data available yet. Start selling to see your analytics!</p>
+            </div>
 
-            <!-- Tooltip -->
             <div v-if="tooltip.show" class="chart-tooltip" :style="tooltipStyle">
               <div class="tooltip-content">
+                <span class="tooltip-month" v-if="tooltip.monthName">{{ tooltip.monthName }}</span>
                 <span class="tooltip-period">{{ tooltip.period }}</span>
-                <span class="tooltip-value">${{ formatToPHCurrency(tooltip.value) }}</span>
+                <span class="tooltip-value">{{ tooltip.formattedValue }}</span>
               </div>
             </div>
           </div>
@@ -424,12 +811,17 @@ const chartData = computed(() => {
   margin-bottom: 2rem;
 }
 
+.profile-image-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
 .profile-image {
   width: 100px;
   height: 100px;
   border-radius: 50%;
   object-fit: cover;
-  margin-bottom: 1.25rem;
   border: 4px solid #1f8b4e;
   box-shadow: 0 4px 16px rgba(31, 139, 78, 0.25);
   transition: transform 0.3s ease;
@@ -437,6 +829,24 @@ const chartData = computed(() => {
 
 .profile-image:hover {
   transform: scale(1.05);
+}
+
+.profile-image-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1f8b4e 0%, #26a65b 100%);
+  color: white;
+  cursor: pointer;
+}
+
+.profile-image-fallback:hover {
+  background: linear-gradient(135deg, #166b3c 0%, #1f8b4e 100%);
+}
+
+.profile-icon {
+  width: 60px;
+  height: 60px;
 }
 
 .profile-header h3 {
@@ -691,6 +1101,112 @@ const chartData = computed(() => {
   background: rgba(220, 38, 38, 0.15);
 }
 
+/* Revenue Analytics Section */
+.revenue-analytics-section {
+  margin: 2rem 0;
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(31, 139, 78, 0.03) 0%, rgba(31, 139, 78, 0.01) 100%);
+  border: 2px solid var(--border-primary);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.revenue-analytics-section::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #1f8b4e 0%, #26a65b 100%);
+}
+
+.analytics-section-title {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+.revenue-insights {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .revenue-insights {
+    flex-direction: row;
+    gap: 2rem;
+  }
+}
+
+.insight-item {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex: 1;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 2px solid var(--border-primary);
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.insight-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(31, 139, 78, 0.1);
+  border-color: rgba(31, 139, 78, 0.3);
+}
+
+.insight-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.insight-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.insight-icon.increase {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.insight-icon.contribution {
+  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.insight-content {
+  flex: 1;
+}
+
+.insight-text {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.insight-text strong {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 1.1em;
+}
+
 .chart-container {
   position: relative;
   max-width: 100%;
@@ -716,6 +1232,67 @@ const chartData = computed(() => {
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.chart-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 639px) {
+  .chart-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .chart-toggle {
+    order: 1;
+    width: 100%;
+  }
+
+  .chart-legend {
+    order: 2;
+    justify-content: center;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+.chart-toggle {
+  display: flex;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 4px;
+  gap: 2px;
+}
+
+.toggle-btn {
+  background: transparent;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+  color: var(--text-primary);
+  background: var(--surface-hover);
+}
+
+.toggle-btn.active {
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 2px 4px rgba(31, 139, 78, 0.2);
 }
 
 .chart-legend {
@@ -847,9 +1424,14 @@ const chartData = computed(() => {
   transition: height 0.3s;
 }
 
+.bg-purple {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
 .bar:hover {
-  opacity: 0.85;
-  transform: scaleY(1.02);
+  opacity: 0.9;
+  transform: scaleY(1.05) scaleX(1.1);
+  filter: brightness(1.1);
 }
 
 .bar.current {
@@ -891,17 +1473,118 @@ const chartData = computed(() => {
   gap: 0.25rem;
 }
 
+.tooltip-month {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 .tooltip-period {
   color: var(--text-tertiary);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-size: 0.75rem;
 }
 
 .tooltip-value {
   color: var(--text-primary);
   font-weight: 700;
   font-size: 0.875rem;
+}
+
+.no-data-message {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--text-secondary);
+  background: linear-gradient(135deg, rgba(31, 139, 78, 0.05) 0%, rgba(31, 139, 78, 0.02) 100%);
+  border: 2px dashed var(--border-primary);
+  border-radius: 16px;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.no-data-message p {
+  margin: 0;
+}
+
+/* Line Chart Styles */
+.line-chart-container {
+  position: relative;
+  width: 100%;
+  height: 240px;
+}
+
+.line-chart {
+  width: 100%;
+  height: 200px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.line {
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: all 0.3s ease;
+}
+
+.current-line {
+  stroke: #1f8b4e;
+  filter: drop-shadow(0 2px 4px rgba(31, 139, 78, 0.3));
+}
+
+.previous-line {
+  stroke: #3b82f6;
+  filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.3));
+}
+
+.data-point {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.data-point:hover {
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+  transform: scale(1.2);
+}
+
+.current-point {
+  fill: #1f8b4e;
+}
+
+.current-point:hover {
+  fill: #166b3c;
+}
+
+.previous-point {
+  fill: #3b82f6;
+}
+
+.previous-point:hover {
+  fill: #2563eb;
+}
+
+.line-chart-labels {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 40px;
+}
+
+.line-label {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  text-align: center;
+  font-weight: 500;
+  position: absolute;
+  transform: translateX(-50%);
 }
 
 /* Calendar - Now at bottom */
@@ -1113,6 +1796,19 @@ const chartData = computed(() => {
       "profile metrics"
       "analytics analytics"
       "calendar calendar";
+  }
+
+  .chart-controls {
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+
+  .chart-toggle {
+    order: 1;
+  }
+
+  .chart-legend {
+    order: 2;
   }
 }
 
